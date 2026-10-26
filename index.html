@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     :root {
-      --bg: #05070a;
+      --bg: #06080d;
       --card: rgba(16, 20, 28, 0.94);
       --border: rgba(255, 255, 255, 0.08);
       --gold: #f59e0b;
@@ -59,7 +58,7 @@
     .era-btn { white-space: nowrap; }
     .era-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: 800; }
 
-    /* 82-0 STYLE ROLLING DRAFT BOX */
+    /* 82-0 STYLE ROLLER */
     .roller-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -178,11 +177,21 @@
     #game3d-container { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
     canvas#three-canvas { width: 100vw; height: 100vh; display: block; }
 
-    .hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; background: rgba(10,13,20,0.85); border: 1px solid var(--border); padding: 8px 24px; border-radius: 12px; z-index: 1002; backdrop-filter: blur(10px); }
+    .hud {
+      position: absolute; top: 20px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 16px;
+      background: rgba(10,13,20,0.88);
+      border: 1px solid var(--border);
+      padding: 8px 24px;
+      border-radius: 12px;
+      z-index: 1002;
+      backdrop-filter: blur(10px);
+    }
     .hud-score { font-size: 1.7rem; font-weight: 900; }
     .hud-timer { font-size: 1.7rem; font-weight: 900; color: var(--gold); }
 
-    /* 2K Curved Style Shot Meter */
+    /* 2K Style Shot Meter */
     #shot-meter-wrap {
       display: none;
       position: absolute;
@@ -190,34 +199,31 @@
       transform: translate(-50%, -50%);
       width: 36px; height: 150px;
       background: rgba(0,0,0,0.88);
-      border: 2px solid rgba(255,255,255,0.85);
+      border: 2px solid rgba(255,255,255,0.9);
       border-radius: 18px;
       overflow: hidden;
       z-index: 1002;
       box-shadow: 0 0 20px rgba(0,0,0,0.9);
     }
     #shot-meter-fill {
-      position: absolute;
-      bottom: 0;
+      position: absolute; bottom: 0;
       width: 100%; height: 0%;
       background: linear-gradient(to top, #f59e0b, #fbbf24);
       transition: height 0.02s linear;
     }
     #shot-meter-target {
-      position: absolute;
-      top: 20%;
-      width: 100%; height: 15%;
-      background: rgba(16,185,129,0.8);
+      position: absolute; top: 22%;
+      width: 100%; height: 14%;
+      background: rgba(16,185,129,0.85);
       border-top: 2px solid #10b981;
       border-bottom: 2px solid #10b981;
       box-shadow: 0 0 12px #10b981;
     }
 
     #game-announcement {
-      position: absolute;
-      top: 18%; left: 50%;
+      position: absolute; top: 18%; left: 50%;
       transform: translateX(-50%);
-      font-size: 2.3rem; font-weight: 900;
+      font-size: 2.2rem; font-weight: 900;
       color: var(--gold);
       text-shadow: 0 0 25px rgba(245,158,11,0.9);
       display: none;
@@ -227,17 +233,11 @@
       letter-spacing: 1px;
     }
     #replay-banner {
-      position: absolute;
-      bottom: 30px; left: 30px;
-      background: var(--red);
-      color: #fff;
-      font-weight: 900;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      display: none;
-      z-index: 1002;
-      box-shadow: 0 0 15px rgba(239,68,68,0.6);
+      position: absolute; bottom: 30px; left: 30px;
+      background: var(--red); color: #fff;
+      font-weight: 900; padding: 6px 14px;
+      border-radius: 6px; font-size: 0.9rem;
+      display: none; z-index: 1002;
     }
 
     /* Modals */
@@ -253,9 +253,10 @@
 
   <nav>
     <div class="brand">NBA 82-0 DRAFT & NEXT-GEN 3D</div>
-    <div style="display: flex; gap: 10px;">
-      <button class="btn" onclick="openModal('controls-modal')">🎮 Controls, Blocks & Combos</button>
-      <button class="btn" onclick="openModal('roster-modal')">📜 All-Star Master Pool (500+)</button>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-primary" onclick="launch3DGame()">🎮 Play / Practice 3D</button>
+      <button class="btn" onclick="openModal('controls-modal')">Controls & Blocks</button>
+      <button class="btn" onclick="openModal('roster-modal')">All-Stars (500+)</button>
     </div>
   </nav>
 
@@ -335,7 +336,7 @@
   <!-- NEXT-GEN 3D GAMEPLAY CANVAS & INTERFACE -->
   <div id="game3d-container">
     <div class="hud">
-      <div class="hud-score" id="hud-score-board">USER 0 - 0 OPP</div>
+      <div class="hud-score" id="hud-score-board">USER 86 - 85 OPP</div>
       <div class="hud-timer" id="hud-clock">Q4 2:00</div>
     </div>
     
@@ -348,7 +349,7 @@
     <div id="replay-banner">🔴 HIGHLIGHT REPLAY (SLOW-MO)</div>
 
     <div style="position: absolute; bottom: 20px; right: 20px; z-index: 1002;">
-      <button class="btn" onclick="exit3DGame()">Exit to Sim</button>
+      <button class="btn" onclick="exit3DGame()">Exit to Menu</button>
     </div>
 
     <canvas id="three-canvas"></canvas>
@@ -500,8 +501,7 @@
       "90s": [
         { name: "1996 Chicago Bulls (Peak 72-10)", short: "CHI", color: 0xce1141, starters: ["Ron Harper", "Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Luc Longley"], bench: ["Steve Kerr", "Toni Kukoc", "Bill Wennington", "Jud Buechler", "Randy Brown"], spacers: 3, finishers: 3, defenders: 5 },
         { name: "1994 Houston Rockets (Peak)", short: "HOU", color: 0xce1141, starters: ["Kenny Smith", "Vernon Maxwell", "Robert Horry", "Otis Thorpe", "Hakeem Olajuwon"], bench: ["Sam Cassell", "Mario Elie", "Carl Herrera", "Scott Brooks", "Matt Bullard"], spacers: 4, finishers: 3, defenders: 4 },
-        { name: "1993 Phoenix Suns (Peak)", short: "PHX", color: 0x1d1160, starters: ["Kevin Johnson", "Dan Majerle", "Richard Dumas", "Charles Barkley", "Mark West"], bench: ["Danny Ainge", "Tom Chambers", "Cedric Ceballos", "Oliver Miller", "Negele Knight"], spacers: 3, finishers: 5, defenders: 2 },
-        { name: "1998 Utah Jazz (Peak)", short: "UTA", color: 0x002b5c, starters: ["John Stockton", "Jeff Hornacek", "Bryon Russell", "Karl Malone", "Greg Ostertag"], bench: ["Howard Eisley", "Shandon Anderson", "Antoine Carr", "Greg Foster", "Chris Morris"], spacers: 3, finishers: 4, defenders: 4 }
+        { name: "1993 Phoenix Suns (Peak)", short: "PHX", color: 0x1d1160, starters: ["Kevin Johnson", "Dan Majerle", "Richard Dumas", "Charles Barkley", "Mark West"], bench: ["Danny Ainge", "Tom Chambers", "Cedric Ceballos", "Oliver Miller", "Negele Knight"], spacers: 3, finishers: 5, defenders: 2 }
       ],
       "80s": [
         { name: "1986 Boston Celtics (Peak 67-15)", short: "BOS", color: 0x007a33, starters: ["Dennis Johnson", "Danny Ainge", "Larry Bird", "Kevin McHale", "Robert Parish"], bench: ["Bill Walton", "Jerry Sichting", "Scott Wedman", "Rick Carlisle", "Greg Kite"], spacers: 3, finishers: 4, defenders: 4 },
@@ -509,7 +509,7 @@
       ],
       "00s": [
         { name: "2001 Los Angeles Lakers (Peak 15-1)", short: "LAL", color: 0x552583, starters: ["Derek Fisher", "Kobe Bryant", "Rick Fox", "Horace Grant", "Shaquille O'Neal"], bench: ["Robert Horry", "Brian Shaw", "Tyronn Lue", "Ron Harper", "Devean George"], spacers: 3, finishers: 4, defenders: 4 },
-        { name: "2004 Detroit Pistons (Peak Goin' To Work)", short: "DET", color: 0x1d428a, starters: ["Chauncey Billups", "Richard Hamilton", "Tayshaun Prince", "Rasheed Wallace", "Ben Wallace"], bench: ["Corliss Williamson", "Mehmet Okur", "Mike James", "Lindsey Hunter", "Darvin Ham"], spacers: 3, finishers: 3, defenders: 5 }
+        { name: "2004 Detroit Pistons (Peak)", short: "DET", color: 0x1d428a, starters: ["Chauncey Billups", "Richard Hamilton", "Tayshaun Prince", "Rasheed Wallace", "Ben Wallace"], bench: ["Corliss Williamson", "Mehmet Okur", "Mike James", "Lindsey Hunter", "Darvin Ham"], spacers: 3, finishers: 3, defenders: 5 }
       ],
       "10s": [
         { name: "2017 Golden State Warriors (Peak 16-1)", short: "GSW", color: 0x1d428a, starters: ["Stephen Curry", "Klay Thompson", "Kevin Durant", "Draymond Green", "Zaza Pachulia"], bench: ["Andre Iguodala", "Shaun Livingston", "David West", "JaVale McGee", "Ian Clark"], spacers: 5, finishers: 4, defenders: 5 },
@@ -835,8 +835,7 @@
     }
 
     /* ============================================================
-       7. NEXT-GEN 3D GRAPHICS & ARENA ENGINE (Three.js WebGL)
-       PBR Sweat Sheen Shaders, Bump Maps, Jumbotron & Volumetric Stadium
+       7. NEXT-GEN 3D GRAPHICS & ARENA ENGINE (FIXED)
        ============================================================ */
     let scene, camera, renderer, clock;
     let goatRig, defRig, ballMesh;
@@ -853,15 +852,14 @@
     let replayBuffer = [];
     const MAX_REPLAY = 360;
 
-    // Procedural Basketball Pebble-Grain Bump Map
+    // Basketball Pebble Bump Texture
     function generatePebbleNormalMap() {
       const c = document.createElement("canvas");
       c.width = 256; c.height = 256;
       const ctx = c.getContext("2d");
-      ctx.fillStyle = "#8080ff"; // flat normal
+      ctx.fillStyle = "#8080ff";
       ctx.fillRect(0, 0, 256, 256);
 
-      // Pebble grain
       for (let x = 0; x < 256; x += 4) {
         for (let y = 0; y < 256; y += 4) {
           const shade = Math.floor(Math.random() * 40 + 100);
@@ -872,7 +870,6 @@
         }
       }
 
-      // Rubber Ribs / Seams
       ctx.strokeStyle = "#101010";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -880,80 +877,74 @@
       ctx.moveTo(128, 0); ctx.lineTo(128, 256);
       ctx.stroke();
 
-      return new THREE.CanvasTexture(c);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
     }
 
-    // High-Gloss Polyurethane Wood Hardwood Texture
+    // High-Gloss Polyurethane Maple Hardwood
     function generateCourtHardwood() {
       const c = document.createElement("canvas");
       c.width = 1024; c.height = 1024;
       const ctx = c.getContext("2d");
 
-      // Warm maple base
-      ctx.fillStyle = "#cca068";
+      ctx.fillStyle = "#d2a679";
       ctx.fillRect(0, 0, 1024, 1024);
 
-      // Planks & Grain lines
       for (let y = 0; y < 1024; y += 16) {
-        ctx.fillStyle = (y % 32 === 0) ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)";
+        ctx.fillStyle = (y % 32 === 0) ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.05)";
         ctx.fillRect(0, y, 1024, 16);
-
-        // Plank seams
-        ctx.fillStyle = "rgba(60, 35, 10, 0.25)";
+        ctx.fillStyle = "rgba(70, 40, 15, 0.25)";
         ctx.fillRect(0, y, 1024, 1);
       }
 
-      return new THREE.CanvasTexture(c);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
     }
 
-    // Detailed Photorealistic Canvas Face Texture
+    // Photorealistic Face Texture
     function generateRealisticFaceTexture(skinHex, facialHair) {
       const c = document.createElement("canvas");
       c.width = 512; c.height = 512;
       const ctx = c.getContext("2d");
 
-      // Base skin tone with subsurface gradient
       const grad = ctx.createRadialGradient(256, 256, 40, 256, 256, 260);
-      grad.addColorStop(0, skinHex);
+      grad.addColorStop(0, skinHex || "#4a2c1d");
       grad.addColorStop(1, "#180d08");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 512, 512);
 
-      // Forehead & Cheek highlights (sweat sheen)
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      // Cheek & Brow Highlights (Sweat)
+      ctx.fillStyle = "rgba(255,255,255,0.09)";
       ctx.beginPath(); ctx.ellipse(256, 160, 120, 40, 0, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.ellipse(160, 290, 45, 30, 0, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.ellipse(352, 290, 45, 30, 0, 0, Math.PI * 2); ctx.fill();
 
-      // Realistic Eyes with corneas & specular light reflection
+      // Eyes
       [170, 342].forEach(ex => {
-        // White sclera
-        ctx.fillStyle = "#eaeaea";
+        ctx.fillStyle = "#eeeeee";
         ctx.beginPath(); ctx.ellipse(ex, 200, 36, 18, 0, 0, Math.PI * 2); ctx.fill();
 
-        // Dark Iris
         ctx.fillStyle = "#2c1b12";
         ctx.beginPath(); ctx.arc(ex, 200, 16, 0, Math.PI * 2); ctx.fill();
 
-        // Deep Pupil
         ctx.fillStyle = "#000000";
         ctx.beginPath(); ctx.arc(ex, 200, 8, 0, Math.PI * 2); ctx.fill();
 
-        // Specular glint
         ctx.fillStyle = "#ffffff";
         ctx.beginPath(); ctx.arc(ex - 4, 196, 3, 0, Math.PI * 2); ctx.fill();
 
-        // Eyelid line
         ctx.strokeStyle = "#100906"; ctx.lineWidth = 4;
         ctx.beginPath(); ctx.arc(ex, 200, 36, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
       });
 
-      // Textured Eyebrows
+      // Brows
       ctx.fillStyle = "#0a0604";
       ctx.fillRect(130, 165, 80, 12);
       ctx.fillRect(302, 165, 80, 12);
 
-      // 3D Shaded Nose Bridge & Nostril flare
+      // Nose
       ctx.fillStyle = "rgba(0,0,0,0.3)";
       ctx.beginPath();
       ctx.moveTo(256, 180); ctx.lineTo(240, 280); ctx.lineTo(272, 280);
@@ -962,65 +953,88 @@
       ctx.beginPath(); ctx.arc(244, 286, 6, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.arc(268, 286, 6, 0, Math.PI * 2); ctx.fill();
 
-      // Detailed Lips
+      // Lips
       ctx.fillStyle = "#532a1e";
       ctx.beginPath(); ctx.ellipse(256, 350, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#33160e";
-      ctx.fillRect(216, 349, 80, 3); // mouth crease
+      ctx.fillRect(216, 349, 80, 3);
 
-      // Facial Hair
       if (facialHair === "beard" || facialHair === "goatee") {
         ctx.fillStyle = "rgba(8,5,3,0.75)";
         ctx.beginPath(); ctx.arc(256, 360, 65, 0, Math.PI); ctx.fill();
       }
 
-      return new THREE.CanvasTexture(c);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
     }
 
-    // Anatomically Articulated PBR Player Mesh
+    function generateJerseyTexture(baseColorHex, number="23") {
+      const c = document.createElement("canvas");
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext("2d");
+      const hexStr = (typeof baseColorHex === "number") ? baseColorHex.toString(16).padStart(6, '0') : "f59e0b";
+      ctx.fillStyle = `#${hexStr}`;
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 256, 28);
+      ctx.fillRect(0, 0, 26, 256);
+      ctx.fillRect(230, 0, 26, 256);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 96px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(number, 128, 160);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // Anatomical Player Builder
     function buildPhotorealisticPlayer(jerseyColor, skinHex, hairStyle, facialHair, scale=1.0) {
       const root = new THREE.Group();
 
-      // PBR Perspiration Sweat Shaders
       const skinMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(skinHex),
-        roughness: 0.38,
+        color: new THREE.Color(skinHex || "#4a2c1d"),
+        roughness: 0.35,
         metalness: 0.05,
-        clearcoat: 0.45, // NBA 2K Player Sweat Gloss
+        clearcoat: 0.6, // Sweat Sheen
         clearcoatRoughness: 0.2
       });
 
       const jerseyTex = generateJerseyTexture(jerseyColor, "23");
       const jerseyMat = new THREE.MeshStandardMaterial({ map: jerseyTex, roughness: 0.5 });
-      const shortsMat = new THREE.MeshStandardMaterial({ color: jerseyColor, roughness: 0.5 });
+      const shortsMat = new THREE.MeshStandardMaterial({ color: jerseyColor || 0xf59e0b, roughness: 0.5 });
       const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.25 });
       const sockMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.8 });
 
-      // Detailed Muscular Torso (Pecs & Abs)
+      // Torso
       const torso = new THREE.Mesh(new THREE.BoxGeometry(1.15 * scale, 1.45 * scale, 0.65 * scale), jerseyMat);
       torso.position.y = 2.4 * scale;
       torso.castShadow = true;
       root.add(torso);
 
-      // Neck & Head with 512x512 Photo-Face Texture
+      // Neck & Head
       const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.22 * scale, 0.35 * scale, 12), skinMat);
       neck.position.y = 0.82 * scale;
       torso.add(neck);
 
-      const headGeo = new THREE.SphereGeometry(0.44 * scale, 32, 32);
+      const headGeo = new THREE.SphereGeometry(0.44 * scale, 24, 24);
       const faceTex = generateRealisticFaceTexture(skinHex, facialHair);
       const headMat = new THREE.MeshPhysicalMaterial({
         map: faceTex,
         roughness: 0.35,
-        clearcoat: 0.35,
-        clearcoatRoughness: 0.25
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.2
       });
       const head = new THREE.Mesh(headGeo, headMat);
       head.position.y = 0.48 * scale;
       head.rotation.y = -Math.PI / 2;
       neck.add(head);
 
-      // Left Arm Hierarchy (Capped Deltoid, Bicep, Forearm, Hand)
+      // Left Arm
       const lShoulder = new THREE.Group(); lShoulder.position.set(-0.72 * scale, 0.58 * scale, 0); torso.add(lShoulder);
       const lDelt = new THREE.Mesh(new THREE.SphereGeometry(0.22 * scale, 12, 12), skinMat); lShoulder.add(lDelt);
       const lBicep = new THREE.Mesh(new THREE.CylinderGeometry(0.17 * scale, 0.15 * scale, 0.75 * scale, 12), skinMat); lBicep.position.y = -0.38 * scale; lShoulder.add(lBicep);
@@ -1028,7 +1042,7 @@
       const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.13 * scale, 0.7 * scale, 12), skinMat); lForearm.position.y = -0.35 * scale; lElbow.add(lForearm);
       const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.16 * scale, 0.24 * scale, 0.08 * scale), skinMat); lHand.position.y = -0.42 * scale; lForearm.add(lHand);
 
-      // Right Arm Hierarchy (Shooting Arm)
+      // Right Arm (Shooting Arm)
       const rShoulder = new THREE.Group(); rShoulder.position.set(0.72 * scale, 0.58 * scale, 0); torso.add(rShoulder);
       const rDelt = new THREE.Mesh(new THREE.SphereGeometry(0.22 * scale, 12, 12), skinMat); rShoulder.add(rDelt);
       const rBicep = new THREE.Mesh(new THREE.CylinderGeometry(0.17 * scale, 0.15 * scale, 0.75 * scale, 12), skinMat); rBicep.position.y = -0.38 * scale; rShoulder.add(rBicep);
@@ -1041,14 +1055,13 @@
       pelvis.position.y = -0.95 * scale;
       torso.add(pelvis);
 
-      // Left Leg Hierarchy (Thigh, Knee, Calf, High-Top Sneaker)
+      // Legs
       const lHip = new THREE.Group(); lHip.position.set(-0.3 * scale, -0.4 * scale, 0); pelvis.add(lHip);
       const lThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22 * scale, 0.18 * scale, 0.95 * scale, 12), skinMat); lThigh.position.y = -0.48 * scale; lHip.add(lThigh);
       const lKnee = new THREE.Group(); lKnee.position.y = -0.48 * scale; lThigh.add(lKnee);
       const lCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.14 * scale, 0.95 * scale, 12), sockMat); lCalf.position.y = -0.48 * scale; lKnee.add(lCalf);
       const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.26 * scale, 0.24 * scale, 0.62 * scale), shoeMat); lShoe.position.set(0, -0.52 * scale, 0.12 * scale); lCalf.add(lShoe);
 
-      // Right Leg Hierarchy
       const rHip = new THREE.Group(); rHip.position.set(0.3 * scale, -0.4 * scale, 0); pelvis.add(rHip);
       const rThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22 * scale, 0.18 * scale, 0.95 * scale, 12), skinMat); rThigh.position.y = -0.48 * scale; rHip.add(rThigh);
       const rKnee = new THREE.Group(); rKnee.position.y = -0.48 * scale; rThigh.add(rKnee);
@@ -1063,56 +1076,41 @@
       };
     }
 
-    function generateJerseyTexture(baseColorHex, number="23") {
-      const c = document.createElement("canvas");
-      c.width = 256; c.height = 256;
-      const ctx = c.getContext("2d");
-      ctx.fillStyle = `#${baseColorHex.toString(16).padStart(6, '0')}`;
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 256, 28);
-      ctx.fillRect(0, 0, 26, 256);
-      ctx.fillRect(230, 0, 26, 256);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 96px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(number, 128, 160);
-
-      return new THREE.CanvasTexture(c);
-    }
-
-    // Build 3D Arena (Jumbotron, Seating Bowl & LED Ribbons)
+    // Perimeter-Only Arena Bleachers (No Solid Center Box!)
     function buildArenaStadium() {
       const stadium = new THREE.Group();
+      const standsMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.85 });
 
-      // Lower & Upper Seating Bowl
-      const standsMat = new THREE.MeshStandardMaterial({ color: 0x141824, roughness: 0.85 });
-      for (let i = 0; i < 8; i++) {
-        const stepGeo = new THREE.BoxGeometry(42 + i * 4, 1.8, 62 + i * 4);
-        const step = new THREE.Mesh(stepGeo, standsMat);
-        step.position.y = -1.2 + i * 1.5;
-        stadium.add(step);
-      }
+      // Left Bleachers
+      const lStands = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 54), standsMat);
+      lStands.position.set(-21, 3.5, 0);
+      stadium.add(lStands);
 
-      // Courtside Animated LED Ribbon
-      const ledGeo = new THREE.BoxGeometry(28, 1.2, 0.4);
-      const ledMat = new THREE.MeshBasicMaterial({ color: 0x0099ff });
+      // Right Bleachers
+      const rStands = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 54), standsMat);
+      rStands.position.set(21, 3.5, 0);
+      stadium.add(rStands);
+
+      // Back Bleachers (Behind Hoop)
+      const bStands = new THREE.Mesh(new THREE.BoxGeometry(42, 8, 10), standsMat);
+      bStands.position.set(0, 3.5, -31);
+      stadium.add(bStands);
+
+      // Courtside LED Ribbon Board
+      const ledGeo = new THREE.BoxGeometry(30, 1.2, 0.3);
+      const ledMat = new THREE.MeshBasicMaterial({ color: 0x0088ff });
       const ledBoard = new THREE.Mesh(ledGeo, ledMat);
-      ledBoard.position.set(0, 0.6, -24.5);
+      ledBoard.position.set(0, 0.6, -24.8);
       stadium.add(ledBoard);
 
-      // Center-Hung 4-Sided Jumbotron
+      // Overhead Jumbotron (Hangs High at y = 28)
       const jumboGroup = new THREE.Group();
-      jumboGroup.position.set(0, 26, 0);
+      jumboGroup.position.set(0, 28, 0);
 
       const jumboGeo = new THREE.BoxGeometry(10, 6, 10);
-      const jumboMat = new THREE.MeshBasicMaterial({ color: 0x0a1020 });
-      const jumboMesh = new THREE.Mesh(jumboGeo, jumboMat);
+      const jumboMesh = new THREE.Mesh(jumboGeo, new THREE.MeshBasicMaterial({ color: 0x0a1020 }));
       jumboGroup.add(jumboMesh);
 
-      // 4 Bright Scoreboard Screens
       const screenMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
       const screen1 = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), screenMat);
       screen1.position.set(0, 0, 5.05); jumboGroup.add(screen1);
@@ -1126,44 +1124,39 @@
     function init3D() {
       const canvas = document.getElementById("three-canvas");
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x040609);
-      scene.fog = new THREE.FogExp2(0x040609, 0.012);
+      scene.background = new THREE.Color(0x06080d);
 
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 16, 26);
+      camera.position.set(0, 15, 25);
 
-      // ACES Filmic Photorealistic Color Pipeline
       renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
+      renderer.toneMappingExposure = 1.2;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-      // Realistic Stadium Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
-      scene.add(ambientLight);
+      // Vibrant Arena Lighting
+      scene.add(new THREE.HemisphereLight(0xddeeff, 0x222233, 0.7));
 
-      // Arena High-Bay Floodlight
-      const spotLight = new THREE.SpotLight(0xfffaed, 1.4);
+      const spotLight = new THREE.SpotLight(0xfffaed, 1.6);
       spotLight.position.set(0, 36, 10);
       spotLight.angle = Math.PI / 3;
       spotLight.penumbra = 0.5;
       spotLight.castShadow = true;
-      spotLight.shadow.mapSize.width = 2048;
-      spotLight.shadow.mapSize.height = 2048;
-      spotLight.shadow.bias = -0.0005;
+      spotLight.shadow.mapSize.width = 1024;
+      spotLight.shadow.mapSize.height = 1024;
       scene.add(spotLight);
 
-      // High-Gloss Court Material
+      // High-Gloss Court
       const courtGeo = new THREE.PlaneGeometry(30, 50);
       const hardwoodTex = generateCourtHardwood();
       const courtMat = new THREE.MeshPhysicalMaterial({
         map: hardwoodTex,
-        roughness: 0.18,
+        roughness: 0.2,
         metalness: 0.05,
-        clearcoat: 0.85, // Polyurethane Shine
+        clearcoat: 0.85,
         clearcoatRoughness: 0.15
       });
       const court = new THREE.Mesh(courtGeo, courtMat);
@@ -1180,29 +1173,28 @@
       buildArenaStadium();
       createHoop(new THREE.Vector3(0, 0, -22));
 
-      // Build Photorealistic GOAT Rig
-      const goatSkin = assignments.frame && assignments.frame.raw ? assignments.frame.raw.skinTone : "#4a2c1d";
-      const goatHair = assignments.frame && assignments.frame.raw ? assignments.frame.raw.hairStyle : "short";
-      const goatFacial = assignments.frame && assignments.frame.raw ? assignments.frame.raw.facialHair : "beard";
+      // Build GOAT & Defender with Resilient Defaults
+      const goatSkin = (assignments.frame && assignments.frame.raw) ? assignments.frame.raw.skinTone : "#4a2c1d";
+      const goatHair = (assignments.frame && assignments.frame.raw) ? assignments.frame.raw.hairStyle : "short";
+      const goatFacial = (assignments.frame && assignments.frame.raw) ? assignments.frame.raw.facialHair : "beard";
       const goatScale = assignments.frame ? (assignments.frame.val / 88) : 1.0;
 
       goatRig = buildPhotorealisticPlayer(selectedTeam ? selectedTeam.color : 0xf59e0b, goatSkin, goatHair, goatFacial, goatScale);
       goatRig.root.position.set(0, 0, 6);
       scene.add(goatRig.root);
 
-      // Build Photorealistic Defender Rig
       defRig = buildPhotorealisticPlayer(0xce1141, "#2b1810", "fade", "goatee", 1.0);
       defRig.root.position.set(0, 0, 0);
       scene.add(defRig.root);
 
-      // Next-Gen Pebble Leather Ball
-      const ballGeo = new THREE.SphereGeometry(0.38, 32, 32);
+      // Pebble Leather Basketball
+      const ballGeo = new THREE.SphereGeometry(0.38, 24, 24);
       const pebbleNormal = generatePebbleNormalMap();
       const ballMat = new THREE.MeshPhysicalMaterial({
         color: 0xdf5a00,
         normalMap: pebbleNormal,
-        roughness: 0.42,
-        clearcoat: 0.15
+        roughness: 0.45,
+        clearcoat: 0.2
       });
       ballMesh = new THREE.Mesh(ballGeo, ballMat);
       ballMesh.castShadow = true;
@@ -1219,15 +1211,12 @@
 
     function createHoop(pos) {
       const g = new THREE.Group();
-      // Hydraulic Arm Stanchion with safety pads
       const stanchion = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 8.5), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.4 }));
       stanchion.position.set(0, 4.25, -2.5); g.add(stanchion);
 
-      // Glass Backboard
       const bb = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.8, 0.12), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.88, roughness: 0.1 }));
       bb.position.set(0, 5.6, 0); g.add(bb);
 
-      // Pro Arena Rim
       const rim = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.05, 12, 32), new THREE.MeshStandardMaterial({ color: 0xff3300, roughness: 0.3 }));
       rim.rotation.x = Math.PI / 2; rim.position.set(0, 4.8, 0.7); g.add(rim);
 
@@ -1247,7 +1236,6 @@
         const shiftX = (k === "Q" || k === "F" || k === "Z") ? -0.85 : 0.85;
         goatRig.root.position.x += shiftX;
 
-        // Ankle breaker stun test
         const dist = goatRig.root.position.distanceTo(defRig.root.position);
         const handles = assignments.handles ? assignments.handles.val : 85;
         if (dist < 4.5 && Math.random() < (handles / 100) * 0.45) {
@@ -1255,7 +1243,7 @@
         }
       }
 
-      // 2K Shot Meter Hold (Space)
+      // 2K Shot Meter (Space)
       if (e.code === "Space" && !ballInFlight && !isShooting) {
         isShooting = true;
         shotChargeTime = 0;
@@ -1342,7 +1330,8 @@
 
       setTimeout(() => {
         clearInterval(blockInterval);
-        const hit = isGreen || (Math.random() < (assignments.three.val / 115));
+        const threeVal = assignments.three ? assignments.three.val : 85;
+        const hit = isGreen || (Math.random() < (threeVal / 115));
         if (hit && ballVelocity.y > -0.1) {
           userScore += (dist > 18 ? 3 : 2);
           document.getElementById("hud-score-board").textContent = `USER ${userScore} - ${oppScore} OPP`;
@@ -1387,7 +1376,6 @@
         const spd = assignments.speed ? (assignments.speed.val / 100) * 0.22 : 0.18;
         const isMoving = keys["W"] || keys["S"] || keys["A"] || keys["D"];
 
-        // Movement
         if (keys["W"]) goatRig.root.position.z -= spd;
         if (keys["S"]) goatRig.root.position.z += spd;
         if (keys["A"]) goatRig.root.position.x -= spd;
@@ -1396,7 +1384,7 @@
         goatRig.root.position.x = Math.max(-12, Math.min(12, goatRig.root.position.x));
         goatRig.root.position.z = Math.max(-23, Math.min(23, goatRig.root.position.z));
 
-        // Articulated Running Legs Cycle
+        // Running Legs Cycle
         const runCycle = Math.sin(performance.now() * 0.015);
         if (isMoving && !isShooting) {
           goatRig.lHip.rotation.x = runCycle * 0.7;
@@ -1410,25 +1398,22 @@
           goatRig.rShoulder.rotation.x = 0;
         }
 
-        // Two-Motion Jumpshot Animation
+        // Two-Motion Jumpshot Mechanics
         if (isShooting) {
-          shotChargeTime += 1.35; // ~750ms pacing (2K style)
+          shotChargeTime += 1.35;
           document.getElementById("shot-meter-fill").style.height = `${Math.min(100, shotChargeTime)}%`;
 
-          // Dip, bend knees, elevate to release point
           goatRig.root.position.y = Math.min(1.6, shotChargeTime * 0.022);
           goatRig.rShoulder.rotation.x = Math.PI * 0.75;
           goatRig.rElbow.rotation.x = -Math.PI * 0.45;
           goatRig.lShoulder.rotation.x = Math.PI * 0.5;
 
-          // Ball sits directly on fingertips
           ballMesh.position.set(
             goatRig.root.position.x + 0.35,
             goatRig.root.position.y + 3.4,
             goatRig.root.position.z - 0.2
           );
         } else if (!ballInFlight) {
-          // Natural dribble bounce
           goatRig.root.position.y = 0;
           ballMesh.position.set(
             goatRig.root.position.x + 0.5,
@@ -1436,22 +1421,21 @@
             goatRig.root.position.z - 0.2
           );
         } else {
-          // Ball in air
           ballMesh.position.add(ballVelocity);
-          ballVelocity.y -= 0.018; // gravity
-          ballMesh.rotation.x += 0.15; // realistic backspin
+          ballVelocity.y -= 0.018;
+          ballMesh.rotation.x += 0.15;
         }
 
         // Defender Tracking
         const defTarget = goatRig.root.position.clone().add(new THREE.Vector3(0, 0, 1.8));
         defRig.root.position.lerp(defTarget, 0.03);
 
-        // Smooth Broadcast Camera Follow
+        // Smooth Camera Follow
         camera.position.x = THREE.MathUtils.lerp(camera.position.x, goatRig.root.position.x * 0.4, 0.05);
         camera.position.z = THREE.MathUtils.lerp(camera.position.z, goatRig.root.position.z + 18, 0.05);
+        camera.position.y = 15;
         camera.lookAt(new THREE.Vector3(goatRig.root.position.x * 0.3, 2.2, goatRig.root.position.z - 6));
 
-        // Buffer replay
         replayBuffer.push({ goat: goatRig.root.position.clone(), ball: ballMesh.position.clone() });
         if (replayBuffer.length > MAX_REPLAY) replayBuffer.shift();
       }
