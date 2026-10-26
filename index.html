@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBA All-Star GOAT Builder & Next-Gen 3D Game 7</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <title>NBA All-Star GOAT Builder & Text RPG Game 7</title>
   <style>
     :root {
-      --bg: #06080d;
-      --card: rgba(16, 20, 28, 0.94);
+      --bg: #07090e;
+      --card: rgba(16, 20, 28, 0.95);
       --border: rgba(255, 255, 255, 0.08);
       --gold: #f59e0b;
       --orange: #ea580c;
@@ -23,7 +22,7 @@
     body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
     nav {
-      background: rgba(8, 10, 16, 0.96);
+      background: rgba(10, 13, 20, 0.96);
       border-bottom: 1px solid var(--border);
       padding: 12px 24px;
       display: flex;
@@ -173,89 +172,131 @@
     .team-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; transition: 0.2s; }
     .team-card:hover, .team-card.active { border-color: var(--cyan); background: rgba(56, 189, 248, 0.08); }
 
-    /* 3D Game Canvas & HUD */
-    #game3d-container { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
-    canvas#three-canvas { width: 100vw; height: 100vh; display: block; }
-
-    .hud {
-      position: absolute; top: 20px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 16px;
-      background: rgba(10,13,20,0.88);
-      border: 1px solid var(--border);
-      padding: 8px 24px;
-      border-radius: 12px;
-      z-index: 1002;
+    /* ============================================================
+       TEXT-BASED ROLEPLAYING GAME 7 MODAL & ENGINE
+       ============================================================ */
+    #rpg-game-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
       backdrop-filter: blur(10px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
     }
-    .hud-score { font-size: 1.7rem; font-weight: 900; }
-    .hud-timer { font-size: 1.7rem; font-weight: 900; color: var(--gold); }
+    #rpg-game-modal.open { display: flex; }
 
-    /* 2K Style Shot Meter */
-    #shot-meter-wrap {
-      display: none;
-      position: absolute;
-      top: 38%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 36px; height: 150px;
-      background: rgba(0,0,0,0.88);
-      border: 2px solid rgba(255,255,255,0.9);
+    .rpg-box {
+      background: #0c1017;
+      border: 2px solid var(--gold);
       border-radius: 18px;
+      width: 100%;
+      max-width: 820px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 35px rgba(245,158,11,0.25);
       overflow: hidden;
-      z-index: 1002;
-      box-shadow: 0 0 20px rgba(0,0,0,0.9);
-    }
-    #shot-meter-fill {
-      position: absolute; bottom: 0;
-      width: 100%; height: 0%;
-      background: linear-gradient(to top, #f59e0b, #fbbf24);
-      transition: height 0.02s linear;
-    }
-    #shot-meter-target {
-      position: absolute; top: 22%;
-      width: 100%; height: 14%;
-      background: rgba(16,185,129,0.85);
-      border-top: 2px solid #10b981;
-      border-bottom: 2px solid #10b981;
-      box-shadow: 0 0 12px #10b981;
     }
 
-    #game-announcement {
-      position: absolute; top: 18%; left: 50%;
-      transform: translateX(-50%);
-      font-size: 2.2rem; font-weight: 900;
-      color: var(--gold);
-      text-shadow: 0 0 25px rgba(245,158,11,0.9);
-      display: none;
-      z-index: 1002;
-      pointer-events: none;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    /* Scoreboard Header */
+    .rpg-scoreboard {
+      background: #111722;
+      border-bottom: 2px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    #replay-banner {
-      position: absolute; bottom: 30px; left: 30px;
-      background: var(--red); color: #fff;
-      font-weight: 900; padding: 6px 14px;
-      border-radius: 6px; font-size: 0.9rem;
-      display: none; z-index: 1002;
+    .rpg-team-score { font-size: 1.6rem; font-weight: 900; }
+    .rpg-clock { font-size: 1.6rem; font-weight: 900; color: var(--gold); text-align: center; }
+    .rpg-shotclock { font-size: 0.8rem; color: var(--red); font-weight: bold; }
+
+    /* Commentary Stream */
+    .rpg-feed {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: radial-gradient(circle at 50% 50%, rgba(20, 26, 38, 0.6) 0%, rgba(10, 13, 20, 0.95) 100%);
     }
 
-    /* Modals */
+    .feed-entry {
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--border);
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .feed-entry.user { border-left-color: var(--cyan); background: rgba(56, 189, 248, 0.05); }
+    .feed-entry.opp { border-left-color: var(--red); background: rgba(239, 68, 68, 0.05); }
+    .feed-entry.make { border-left-color: var(--green); background: rgba(16, 185, 129, 0.08); }
+    .feed-entry.clutch { border-left-color: var(--gold); font-weight: bold; }
+
+    .feed-meta { font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .percentage-tag { font-weight: 800; color: var(--gold); font-size: 0.75rem; }
+
+    /* Action Inputs */
+    .rpg-action-bar {
+      background: #111722;
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .preset-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.15s;
+    }
+    .preset-btn:hover { border-color: var(--gold); background: rgba(245,158,11,0.1); }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    #rpg-input {
+      flex: 1;
+      background: #080b10;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+    }
+    #rpg-input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+
+    /* Modal standard */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
     .modal.open { display: flex; }
     .modal-content { background: #111827; border: 2px solid var(--gold); border-radius: 16px; max-width: 650px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; }
-    .key-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 12px 0; }
-    .key-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .key-badge { background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: var(--gold); }
   </style>
 </head>
 <body>
 
   <nav>
-    <div class="brand">NBA 82-0 DRAFT & NEXT-GEN 3D</div>
+    <div class="brand">NBA 82-0 DRAFT & GAME 7 RPG</div>
     <div style="display: flex; gap: 8px;">
-      <button class="btn btn-primary" onclick="launch3DGame()">🎮 Play / Practice 3D</button>
-      <button class="btn" onclick="openModal('controls-modal')">Controls & Blocks</button>
+      <button class="btn btn-primary" onclick="launchTextRPG()">🎮 Play Game 7 RPG</button>
       <button class="btn" onclick="openModal('roster-modal')">All-Stars (500+)</button>
     </div>
   </nav>
@@ -313,9 +354,9 @@
       <!-- Playoff Game 7 Intercept Banner -->
       <div id="game7-intercept" style="display: none; margin-top: 20px; background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.2)); border: 2px solid var(--gold); padding: 16px; border-radius: 12px; text-align: center;">
         <h2 style="color: var(--gold);">🔥 GAME 7 ALERT! NBA FINALS ON THE LINE!</h2>
-        <p style="font-size: 0.85rem; margin: 6px 0 14px 0;">Play the live Next-Gen 3D matchup with 2-minute quarters or quick simulate.</p>
+        <p style="font-size: 0.85rem; margin: 6px 0 14px 0;">Play the text-based clutch RPG or quick simulate.</p>
         <div style="display: flex; justify-content: center; gap: 12px;">
-          <button class="btn btn-primary" onclick="launch3DGame()">🎮 Play Game 7 (Next-Gen 3D)</button>
+          <button class="btn btn-primary" onclick="launchTextRPG()">🎮 Play Game 7 (Text RPG)</button>
           <button class="btn" onclick="continueSimPostGame7(false)">⚡ Quick Sim Game 7</button>
         </div>
       </div>
@@ -333,48 +374,37 @@
     </div>
   </div>
 
-  <!-- NEXT-GEN 3D GAMEPLAY CANVAS & INTERFACE -->
-  <div id="game3d-container">
-    <div class="hud">
-      <div class="hud-score" id="hud-score-board">USER 86 - 85 OPP</div>
-      <div class="hud-timer" id="hud-clock">Q4 2:00</div>
-    </div>
-    
-    <div id="shot-meter-wrap">
-      <div id="shot-meter-target"></div>
-      <div id="shot-meter-fill"></div>
-    </div>
+  <!-- TEXT-BASED ROLEPLAYING GAME 7 MODAL -->
+  <div id="rpg-game-modal">
+    <div class="rpg-box">
+      <!-- Scoreboard -->
+      <div class="rpg-scoreboard">
+        <div class="rpg-team-score" id="rpg-user-score" style="color: var(--cyan);">USER 98</div>
+        <div>
+          <div class="rpg-clock" id="rpg-clock">Q4 2:15</div>
+          <div class="rpg-shotclock" id="rpg-shotclock">SHOT CLOCK: 24</div>
+        </div>
+        <div class="rpg-team-score" id="rpg-opp-score" style="color: var(--red);">OPP 97</div>
+      </div>
 
-    <div id="game-announcement">ANKLE BREAKER!</div>
-    <div id="replay-banner">🔴 HIGHLIGHT REPLAY (SLOW-MO)</div>
+      <!-- Play-by-Play Narrative Stream -->
+      <div class="rpg-feed" id="rpg-feed"></div>
 
-    <div style="position: absolute; bottom: 20px; right: 20px; z-index: 1002;">
-      <button class="btn" onclick="exit3DGame()">Exit to Menu</button>
-    </div>
+      <!-- Action Controller -->
+      <div class="rpg-action-bar">
+        <div class="preset-chips" id="preset-chips">
+          <button class="preset-btn" onclick="applyPreset('Step back behind the three-point arc and pull up for a game-winner')">🎯 Step-Back 3</button>
+          <button class="preset-btn" onclick="applyPreset('Hit him with a crossover to the left, drive baseline, and posterize the center')">💥 Crossover & Poster Dunk</button>
+          <button class="preset-btn" onclick="applyPreset('Drive into the paint, absorb contact, and finish with a high-arching reverse layup')">✨ Contested Layup</button>
+          <button class="preset-btn" onclick="applyPreset('Run a pick-and-roll and throw an alley-oop lob to my cutting big man')">🤝 Pick & Roll Lob</button>
+          <button class="preset-btn" onclick="applyPreset('Lock him down on the perimeter, slide my feet, and contest the jumper with two hands')">🔒 Lockdown Defense</button>
+        </div>
 
-    <canvas id="three-canvas"></canvas>
-  </div>
-
-  <!-- CONTROLS MODAL -->
-  <div class="modal" id="controls-modal">
-    <div class="modal-content">
-      <h2>🎮 Game 7 Controls & Gameplay</h2>
-      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 12px;">Physically-based sweat shaders, 2K green release timing, and rim protection.</p>
-      
-      <table class="key-table">
-        <tr><td><span class="key-badge">W, A, S, D</span></td><td>Move Player (Anatomical leg & arm running cycles)</td></tr>
-        <tr><td><span class="key-badge">Hold Space</span></td><td>2K Shot Meter (Release inside Green target for swish)</td></tr>
-        <tr><td><span class="key-badge">Shift + Space</span></td><td>Flashy Posterizing Dunk / Acrobatic Finish (Near Rim)</td></tr>
-        <tr><td><span class="key-badge">B</span> or <span class="key-badge">L</span></td><td>Jump & Swat Block (Contest shooter & block the ball)</td></tr>
-        <tr><td><span class="key-badge">Q</span> / <span class="key-badge">E</span></td><td>Crossover Left / Right</td></tr>
-        <tr><td><span class="key-badge">F</span> / <span class="key-badge">G</span></td><td>Between the Legs Left / Right</td></tr>
-        <tr><td><span class="key-badge">Z</span> / <span class="key-badge">X</span></td><td>Behind the Back Left / Right</td></tr>
-        <tr><td><span class="key-badge">K</span></td><td>Pass to Open Teammate</td></tr>
-        <tr><td><span class="key-badge">P</span></td><td>Call for Ball (When off-ball)</td></tr>
-      </table>
-
-      <div style="text-align: right; margin-top: 16px;">
-        <button class="btn btn-primary" onclick="closeModal('controls-modal')">Save & Close</button>
+        <div class="input-row">
+          <input type="text" id="rpg-input" placeholder="Type your move (e.g., 'Crossover right, pull up from mid-range')..." onkeydown="if(event.key==='Enter') submitRPGAction()" />
+          <button class="btn btn-primary" onclick="submitRPGAction()">Execute 🏀</button>
+          <button class="btn" onclick="closeRPG()">Exit</button>
+        </div>
       </div>
     </div>
   </div>
@@ -396,82 +426,82 @@
        ============================================================ */
     const ALL_STAR_DATA = [
       // 2020s
-      "Nikola Jokić|20s|C|96,72,68,88,94,91,99,98,75,82,99|3x MVP & Finals MVP passing genius|#e0ac69|buzz|beard",
-      "Giannis Antetokounmpo|20s|PF|98,95,96,71,78,85,86,96,99,97,92|Greek Freak transition destroyer|#4a2c1d|fade|stubble",
-      "Luka Dončić|20s|PG|92,83,78,92,95,97,99,97,76,80,99|Deceleration & court vision wizard|#f1c27d|short|stubble",
-      "Shai Gilgeous-Alexander|20s|PG|90,92,86,88,98,96,92,98,82,92,96|Master of angles & pull-ups|#5c3826|braids|goatee",
-      "Anthony Edwards|20s|SG|88,97,99,89,92,89,82,95,99,90,90|Nuclear bounce & explosive scoring|#4a2c1d|short|stubble",
-      "Victor Wembanyama|20s|C|99,91,92,86,89,85,84,93,98,99,93|7'4 alien with 8-foot wingspan|#5c3826|buzz|clean",
-      "Jalen Brunson|20s|PG|76,86,80,91,95,93,89,96,65,79,95|Immaculate footwork & clutch shot-making|#5c3826|braids|beard",
-      "Tyrese Haliburton|20s|PG|86,88,80,91,88,94,99,88,72,76,97|Historic assist-to-turnover playmaker|#8d5524|fade|stubble",
-      "Tyrese Maxey|20s|PG|74,99,90,92,88,91,84,94,78,78,89|Blazing end-to-end acceleration|#4a2c1d|dreads|clean",
-      "Paolo Banchero|20s|PF|94,86,88,82,88,87,86,93,92,84,89|Bruising playmaking forward|#8d5524|fade|clean",
-      "Scottie Barnes|20s|PF|93,88,89,80,84,86,90,90,92,92,91|Do-it-all versatile point-forward|#5c3826|buzz|clean",
-      "Donovan Mitchell|20s|SG|82,95,96,92,90,91,86,94,94,83,90|71-point scoring threat with hops|#4a2c1d|fade|beard",
-      "Devin Booker|20s|SG|88,88,86,93,98,89,88,93,84,82,92|Textbook midrange technician|#c68642|fade|goatee",
-      "Jayson Tatum|20s|SF|93,89,88,93,92,90,88,93,91,91,92|Championship three-level wing scorer|#8d5524|fade|beard",
-      "Jaylen Brown|20s|SG|90,93,94,86,88,86,78,94,96,92,89|Finals MVP explosive slasher|#4a2c1d|fade|beard",
-      "Bam Adebayo|20s|C|93,88,88,65,82,85,88,91,92,97,94|1-through-5 switchable defensive anchor|#4a2c1d|buzz|goatee",
+      "Nikola Jokić|20s|C|96,72,68,88,94,91,99,98,75,82,99|3x MVP & Finals MVP passing genius",
+      "Giannis Antetokounmpo|20s|PF|98,95,96,71,78,85,86,96,99,97,92|Greek Freak transition destroyer",
+      "Luka Dončić|20s|PG|92,83,78,92,95,97,99,97,76,80,99|Deceleration & court vision wizard",
+      "Shai Gilgeous-Alexander|20s|PG|90,92,86,88,98,96,92,98,82,92,96|Master of angles & pull-ups",
+      "Anthony Edwards|20s|SG|88,97,99,89,92,89,82,95,99,90,90|Nuclear bounce & explosive scoring",
+      "Victor Wembanyama|20s|C|99,91,92,86,89,85,84,93,98,99,93|7'4 alien with 8-foot wingspan",
+      "Jalen Brunson|20s|PG|76,86,80,91,95,93,89,96,65,79,95|Immaculate footwork & clutch shot-making",
+      "Tyrese Haliburton|20s|PG|86,88,80,91,88,94,99,88,72,76,97|Historic assist-to-turnover playmaker",
+      "Tyrese Maxey|20s|PG|74,99,90,92,88,91,84,94,78,78,89|Blazing end-to-end acceleration",
+      "Paolo Banchero|20s|PF|94,86,88,82,88,87,86,93,92,84,89|Bruising playmaking forward",
+      "Scottie Barnes|20s|PF|93,88,89,80,84,86,90,90,92,92,91|Do-it-all versatile point-forward",
+      "Donovan Mitchell|20s|SG|82,95,96,92,90,91,86,94,94,83,90|71-point scoring threat with hops",
+      "Devin Booker|20s|SG|88,88,86,93,98,89,88,93,84,82,92|Textbook midrange technician",
+      "Jayson Tatum|20s|SF|93,89,88,93,92,90,88,93,91,91,92|Championship three-level wing scorer",
+      "Jaylen Brown|20s|SG|90,93,94,86,88,86,78,94,96,92,89|Finals MVP explosive slasher",
+      "Bam Adebayo|20s|C|93,88,88,65,82,85,88,91,92,97,94|1-through-5 switchable defensive anchor",
 
       // 2010s
-      "Stephen Curry|10s|PG|74,90,75,99,96,97,92,95,45,78,97|Greatest 3-point marksman ever|#e0ac69|fade|beard",
-      "LeBron James|10s|SF|99,96,98,86,89,93,98,99,98,94,99|All-time scoring leader & 4x Finals MVP|#4a2c1d|headband|beard",
-      "Kevin Durant|10s|PF|96,88,86,97,99,92,88,95,92,89,95|Unstoppable 7-foot pure shooter|#4a2c1d|buzz|goatee",
-      "Kawhi Leonard|10s|SF|93,88,89,91,95,88,84,93,91,99,95|2x DPOY with vice-grip clamps|#4a2c1d|braids|clean",
-      "James Harden|10s|SG|89,87,85,94,90,98,96,94,80,78,96|Step-back innovator & scoring king|#4a2c1d|mohawk|beard",
-      "Russell Westbrook|10s|PG|84,99,98,75,82,90,92,94,97,86,88|Triple-double MVP with nuclear burst|#4a2c1d|buzz|clean",
-      "Kyrie Irving|10s|PG|74,92,82,93,95,99,89,99,65,77,91|Greatest handle package in history|#4a2c1d|afro|beard",
-      "Damian Lillard|10s|PG|75,91,85,97,91,93,91,91,78,77,95|Dame Time logo shooter & clutch killer|#4a2c1d|buzz|goatee",
-      "Anthony Davis|10s|PF|97,88,92,80,88,82,80,94,96,98,92|Elite rim protector and lob target|#4a2c1d|curly|beard",
-      "Klay Thompson|10s|SG|88,84,82,98,91,78,75,86,80,91,90|60 points in 11 dribbles|#e0ac69|short|goatee",
+      "Stephen Curry|10s|PG|74,90,75,99,96,97,92,95,45,78,97|Greatest 3-point marksman ever",
+      "LeBron James|10s|SF|99,96,98,86,89,93,98,99,98,94,99|All-time scoring leader & 4x Finals MVP",
+      "Kevin Durant|10s|PF|96,88,86,97,99,92,88,95,92,89,95|Unstoppable 7-foot pure shooter",
+      "Kawhi Leonard|10s|SF|93,88,89,91,95,88,84,93,91,99,95|2x DPOY with vice-grip clamps",
+      "James Harden|10s|SG|89,87,85,94,90,98,96,94,80,78,96|Step-back innovator & scoring king",
+      "Russell Westbrook|10s|PG|84,99,98,75,82,90,92,94,97,86,88|Triple-double MVP with nuclear burst",
+      "Kyrie Irving|10s|PG|74,92,82,93,95,99,89,99,65,77,91|Greatest handle package in history",
+      "Damian Lillard|10s|PG|75,91,85,97,91,93,91,91,78,77,95|Dame Time logo shooter & clutch killer",
+      "Anthony Davis|10s|PF|97,88,92,80,88,82,80,94,96,98,92|Elite rim protector and lob target",
+      "Klay Thompson|10s|SG|88,84,82,98,91,78,75,86,80,91,90|60 points in 11 dribbles",
 
       // 2000s
-      "Kobe Bryant|00s|SG|90,93,95,87,98,94,86,96,95,95,98|81 points, 5 championships, Mamba|#4a2c1d|buzz|goatee",
-      "Shaquille O'Neal|00s|C|99,85,90,20,65,68,78,92,99,93,88|Unstoppable 7'1 325lb powerhouse|#2b1810|bald|clean",
-      "Tim Duncan|00s|PF|96,82,82,30,92,80,85,95,88,98,99|The Big Fundamental with 5 rings|#4a2c1d|buzz|clean",
-      "Allen Iverson|00s|PG|68,99,92,82,92,99,87,96,78,84,89|Cultural icon with ankle-breaking speed|#4a2c1d|headband|goatee",
-      "Steve Nash|00s|PG|74,85,68,97,96,96,99,92,35,68,99|2x MVP seven-seconds-or-less general|#f1c27d|long|clean",
-      "Dirk Nowitzki|00s|PF|95,76,74,94,99,79,80,89,78,80,96|One-legged fadeaway scoring giant|#f1c27d|shaggy|clean",
-      "Dwyane Wade|00s|SG|86,97,95,74,90,92,88,98,95,93,95|Flash, all-time guard rim attacker|#4a2c1d|buzz|clean",
-      "Vince Carter|00s|SG|89,94,99,89,88,87,80,94,99,82,86|Greatest dunk contest performer ever|#4a2c1d|bald|goatee",
-      "Paul Pierce|00s|SF|90,83,80,91,95,88,84,92,82,87,95|The Truth, clutch midrange assassin|#4a2c1d|headband|goatee",
-      "Ray Allen|00s|SG|86,88,90,99,94,87,82,91,89,84,94|Pristine shooting stroke & clutch corner 3s|#5c3826|bald|clean",
+      "Kobe Bryant|00s|SG|90,93,95,87,98,94,86,96,95,95,98|81 points, 5 championships, Mamba",
+      "Shaquille O'Neal|00s|C|99,85,90,20,65,68,78,92,99,93,88|Unstoppable 7'1 325lb powerhouse",
+      "Tim Duncan|00s|PF|96,82,82,30,92,80,85,95,88,98,99|The Big Fundamental with 5 rings",
+      "Allen Iverson|00s|PG|68,99,92,82,92,99,87,96,78,84,89|Cultural icon with ankle-breaking speed",
+      "Steve Nash|00s|PG|74,85,68,97,96,96,99,92,35,68,99|2x MVP seven-seconds-or-less general",
+      "Dirk Nowitzki|00s|PF|95,76,74,94,99,79,80,89,78,80,96|One-legged fadeaway scoring giant",
+      "Dwyane Wade|00s|SG|86,97,95,74,90,92,88,98,95,93,95|Flash, all-time guard rim attacker",
+      "Vince Carter|00s|SG|89,94,99,89,88,87,80,94,99,82,86|Greatest dunk contest performer ever",
+      "Paul Pierce|00s|SF|90,83,80,91,95,88,84,92,82,87,95|The Truth, clutch midrange assassin",
+      "Ray Allen|00s|SG|86,88,90,99,94,87,82,91,89,84,94|Pristine shooting stroke & clutch corner 3s",
 
       // 1990s
-      "Michael Jordan|90s|SG|92,97,99,83,99,95,88,99,99,98,99|6-0 Finals record, 10x scoring king|#2b1810|bald|clean",
-      "Hakeem Olajuwon|90s|C|95,90,93,40,89,86,82,98,96,99,96|Dream Shake footwork & all-time blocks leader|#2b1810|buzz|clean",
-      "Karl Malone|90s|PF|93,88,86,40,92,78,82,96,94,90,93|The Mailman, 36,000+ career points|#4a2c1d|bald|goatee",
-      "John Stockton|90s|PG|74,88,70,88,90,95,99,92,40,93,99|All-time NBA assists & steals leader|#f1c27d|short|clean",
-      "Charles Barkley|90s|PF|89,91,96,68,85,86,86,96,98,86,94|Round Mound of Rebound MVP|#4a2c1d|bald|clean",
-      "David Robinson|90s|C|95,92,94,45,86,78,80,93,97,98,94|The Admiral with Olympian speed & physique|#4a2c1d|buzz|clean",
-      "Patrick Ewing|90s|C|94,82,85,40,90,75,76,94,92,96,91|Heartbeat of the 90s Knicks in MSG|#2b1810|flat|clean",
-      "Scottie Pippen|90s|SF|91,92,93,78,85,89,92,93,92,99,96|Perimeter clamp legend & point-forward|#4a2c1d|flat|clean",
-      "Dennis Rodman|90s|PF|89,91,94,35,55,62,75,78,82,99,95|Pound-for-pound rebounder & clamps|#4a2c1d|dyed|clean",
-      "Reggie Miller|90s|SG|88,86,82,98,94,80,78,88,76,83,97|8 points in 9 seconds clutch dagger|#5c3826|buzz|clean",
+      "Michael Jordan|90s|SG|92,97,99,83,99,95,88,99,99,98,99|6-0 Finals record, 10x scoring king",
+      "Hakeem Olajuwon|90s|C|95,90,93,40,89,86,82,98,96,99,96|Dream Shake footwork & all-time blocks leader",
+      "Karl Malone|90s|PF|93,88,86,40,92,78,82,96,94,90,93|The Mailman, 36,000+ career points",
+      "John Stockton|90s|PG|74,88,70,88,90,95,99,92,40,93,99|All-time NBA assists & steals leader",
+      "Charles Barkley|90s|PF|89,91,96,68,85,86,86,96,98,86,94|Round Mound of Rebound MVP",
+      "David Robinson|90s|C|95,92,94,45,86,78,80,93,97,98,94|The Admiral with Olympian speed & physique",
+      "Patrick Ewing|90s|C|94,82,85,40,90,75,76,94,92,96,91|Heartbeat of the 90s Knicks in MSG",
+      "Scottie Pippen|90s|SF|91,92,93,78,85,89,92,93,92,99,96|Perimeter clamp legend & point-forward",
+      "Dennis Rodman|90s|PF|89,91,94,35,55,62,75,78,82,99,95|Pound-for-pound rebounder & clamps",
+      "Reggie Miller|90s|SG|88,86,82,98,94,80,78,88,76,83,97|8 points in 9 seconds clutch dagger",
 
       // 1980s
-      "Magic Johnson|80s|PG|94,86,80,75,86,95,99,94,80,84,99|Showtime general with 6'9 size|#4a2c1d|short|clean",
-      "Larry Bird|80s|SF|91,76,72,96,98,90,98,94,72,88,99|3x MVP with deadly shooting & passing|#f1c27d|blonde|mustache",
-      "Isiah Thomas|80s|PG|74,94,88,78,89,97,96,91,65,88,98|Bad Boys leader with 25-point quarters|#4a2c1d|buzz|clean",
-      "Dominique Wilkins|80s|SF|90,95,99,78,89,85,78,94,99,80,88|The Human Highlight Film|#4a2c1d|flat|clean",
-      "Moses Malone|80s|C|94,86,88,20,82,70,72,96,94,92,95|3x MVP, Chairman of the Boards|#4a2c1d|afro|beard",
+      "Magic Johnson|80s|PG|94,86,80,75,86,95,99,94,80,84,99|Showtime general with 6'9 size",
+      "Larry Bird|80s|SF|91,76,72,96,98,90,98,94,72,88,99|3x MVP with deadly shooting & passing",
+      "Isiah Thomas|80s|PG|74,94,88,78,89,97,96,91,65,88,98|Bad Boys leader with 25-point quarters",
+      "Dominique Wilkins|80s|SF|90,95,99,78,89,85,78,94,99,80,88|The Human Highlight Film",
+      "Moses Malone|80s|C|94,86,88,20,82,70,72,96,94,92,95|3x MVP, Chairman of the Boards",
 
       // 1970s
-      "Kareem Abdul-Jabbar|70s|C|98,83,85,20,92,78,86,98,94,96,99|Unstoppable skyhook & 6x MVP|#4a2c1d|goggles|beard",
-      "Julius Erving|70s|SF|90,96,99,65,88,89,86,99,99,89,94|Dr. J, original above-the-rim artist|#4a2c1d|afro|goatee",
-      "Walt Frazier|70s|PG|85,88,86,60,92,94,95,89,72,97,97|Clyde, slick playmaking & Game 7 heroics|#4a2c1d|sideburns|mustache",
-      "Pete Maravich|70s|SG|86,88,78,88,94,99,97,94,65,72,94|Pistol Pete, flashy playground dribbler|#f1c27d|floppy|clean",
+      "Kareem Abdul-Jabbar|70s|C|98,83,85,20,92,78,86,98,94,96,99|Unstoppable skyhook & 6x MVP",
+      "Julius Erving|70s|SF|90,96,99,65,88,89,86,99,99,89,94|Dr. J, original above-the-rim artist",
+      "Walt Frazier|70s|PG|85,88,86,60,92,94,95,89,72,97,97|Clyde, slick playmaking & Game 7 heroics",
+      "Pete Maravich|70s|SG|86,88,78,88,94,99,97,94,65,72,94|Pistol Pete, flashy playground dribbler",
 
       // 1960s
-      "Wilt Chamberlain|60s|C|99,97,98,20,75,70,85,94,99,98,91|100-point game and 50 PPG season|#4a2c1d|headband|mustache",
-      "Bill Russell|60s|C|94,93,96,20,70,76,85,91,92,99,99|11x Champion and defensive master|#2b1810|short|goatee",
-      "Oscar Robertson|60s|PG|89,89,88,60,94,97,99,93,78,89,99|The Big O, first triple-double season|#4a2c1d|short|clean",
-      "Jerry West|60s|PG|84,90,88,82,97,93,92,94,76,94,98|The Logo, clutch Finals scoring dynamo|#f1c27d|sidepart|clean",
+      "Wilt Chamberlain|60s|C|99,97,98,20,75,70,85,94,99,98,91|100-point game and 50 PPG season",
+      "Bill Russell|60s|C|94,93,96,20,70,76,85,91,92,99,99|11x Champion and defensive master",
+      "Oscar Robertson|60s|PG|89,89,88,60,94,97,99,93,78,89,99|The Big O, first triple-double season",
+      "Jerry West|60s|PG|84,90,88,82,97,93,92,94,76,94,98|The Logo, clutch Finals scoring dynamo",
 
       // 1950s
-      "Bob Cousy|50s|PG|74,86,72,20,86,95,98,90,35,80,97|Houdini of the Hardwood pioneer|#f1c27d|crew|clean",
-      "George Mikan|50s|C|94,70,72,15,84,65,72,96,80,90,93|First dominant giant in professional basketball|#f1c27d|glasses|clean",
-      "Bob Pettit|50s|PF|92,82,84,20,92,75,78,94,85,89,96|First MVP in NBA history & 50-pt Finals hero|#f1c27d|crew|clean"
+      "Bob Cousy|50s|PG|74,86,72,20,86,95,98,90,35,80,97|Houdini of the Hardwood pioneer",
+      "George Mikan|50s|C|94,70,72,15,84,65,72,96,80,90,93|First dominant giant in professional basketball",
+      "Bob Pettit|50s|PF|92,82,84,20,92,75,78,94,85,89,96|First MVP in NBA history & 50-pt Finals hero"
     ];
 
     const ALL_STARS = ALL_STAR_DATA.map(raw => {
@@ -481,8 +511,7 @@
         name: p[0], era: p[1], pos: p[2],
         frame: s[0], speed: s[1], vert: s[2], three: s[3], mid: s[4],
         handles: s[5], playmaking: s[6], layups: s[7], dunks: s[8],
-        defense: s[9], iq: s[10], accolade: p[4],
-        skinTone: p[5] || "#4a2c1d", hairStyle: p[6] || "short", facialHair: p[7] || "clean"
+        defense: s[9], iq: s[10], accolade: p[4]
       };
     });
 
@@ -491,38 +520,38 @@
        ============================================================ */
     const PEAK_TEAMS = {
       "20s": [
-        { name: "2024 Boston Celtics (Peak)", short: "BOS", color: 0x007a33, starters: ["Jrue Holiday", "Derrick White", "Jaylen Brown", "Jayson Tatum", "Kristaps Porzingis"], bench: ["Al Horford", "Payton Pritchard", "Sam Hauser", "Luke Kornet", "Oshae Brissett"], spacers: 5, finishers: 3, defenders: 5 },
-        { name: "2023 Denver Nuggets (Peak)", short: "DEN", color: 0x0e2240, starters: ["Jamal Murray", "KCP", "Michael Porter Jr.", "Aaron Gordon", "Nikola Jokic"], bench: ["Bruce Brown", "Christian Braun", "Jeff Green", "DeAndre Jordan", "Peyton Watson"], spacers: 4, finishers: 5, defenders: 3 },
-        { name: "2020 Los Angeles Lakers (Peak)", short: "LAL", color: 0x552583, starters: ["LeBron James", "KCP", "Danny Green", "Anthony Davis", "JaVale McGee"], bench: ["Rajon Rondo", "Alex Caruso", "Kyle Kuzma", "Markieff Morris", "Dwight Howard"], spacers: 3, finishers: 5, defenders: 5 },
-        { name: "2021 Milwaukee Bucks (Peak)", short: "MIL", color: 0x00471b, starters: ["Jrue Holiday", "Donte DiVincenzo", "Khris Middleton", "Giannis Antetokounmpo", "Brook Lopez"], bench: ["P.J. Tucker", "Pat Connaughton", "Bobby Portis", "Bryn Forbes", "Jeff Teague"], spacers: 4, finishers: 4, defenders: 5 },
-        { name: "2026 Detroit Pistons (Peak Young Core)", short: "DET", color: 0x1d428a, starters: ["Cade Cunningham", "Jaden Ivey", "Ausar Thompson", "Tobias Harris", "Jalen Duren"], bench: ["Malik Beasley", "Tim Hardaway Jr.", "Isaiah Stewart", "Ron Holland", "Paul Reed"], spacers: 3, finishers: 4, defenders: 4 },
-        { name: "2024 Oklahoma City Thunder (Peak)", short: "OKC", color: 0x007ac1, starters: ["Shai Gilgeous-Alexander", "Josh Giddey", "Lu Dort", "Jalen Williams", "Chet Holmgren"], bench: ["Isaiah Joe", "Cason Wallace", "Jaylin Williams", "Gordon Hayward", "Kenrich Williams"], spacers: 5, finishers: 3, defenders: 5 }
+        { name: "2024 Boston Celtics (Peak)", short: "BOS", starters: ["Jrue Holiday", "Derrick White", "Jaylen Brown", "Jayson Tatum", "Kristaps Porziņģis"], bench: ["Al Horford", "Payton Pritchard", "Sam Hauser", "Luke Kornet", "Oshae Brissett"], spacers: 5, finishers: 3, defenders: 5 },
+        { name: "2023 Denver Nuggets (Peak)", short: "DEN", starters: ["Jamal Murray", "KCP", "Michael Porter Jr.", "Aaron Gordon", "Nikola Jokić"], bench: ["Bruce Brown", "Christian Braun", "Jeff Green", "DeAndre Jordan", "Peyton Watson"], spacers: 4, finishers: 5, defenders: 3 },
+        { name: "2020 Los Angeles Lakers (Peak)", short: "LAL", starters: ["LeBron James", "KCP", "Danny Green", "Anthony Davis", "JaVale McGee"], bench: ["Rajon Rondo", "Alex Caruso", "Kyle Kuzma", "Markieff Morris", "Dwight Howard"], spacers: 3, finishers: 5, defenders: 5 },
+        { name: "2021 Milwaukee Bucks (Peak)", short: "MIL", starters: ["Jrue Holiday", "Donte DiVincenzo", "Khris Middleton", "Giannis Antetokounmpo", "Brook Lopez"], bench: ["P.J. Tucker", "Pat Connaughton", "Bobby Portis", "Bryn Forbes", "Jeff Teague"], spacers: 4, finishers: 4, defenders: 5 },
+        { name: "2026 Detroit Pistons (Peak Young Core)", short: "DET", starters: ["Cade Cunningham", "Jaden Ivey", "Ausar Thompson", "Tobias Harris", "Jalen Duren"], bench: ["Malik Beasley", "Tim Hardaway Jr.", "Isaiah Stewart", "Ron Holland", "Paul Reed"], spacers: 3, finishers: 4, defenders: 4 },
+        { name: "2024 Oklahoma City Thunder (Peak)", short: "OKC", starters: ["Shai Gilgeous-Alexander", "Josh Giddey", "Lu Dort", "Jalen Williams", "Chet Holmgren"], bench: ["Isaiah Joe", "Cason Wallace", "Jaylin Williams", "Gordon Hayward", "Kenrich Williams"], spacers: 5, finishers: 3, defenders: 5 }
       ],
       "90s": [
-        { name: "1996 Chicago Bulls (Peak 72-10)", short: "CHI", color: 0xce1141, starters: ["Ron Harper", "Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Luc Longley"], bench: ["Steve Kerr", "Toni Kukoc", "Bill Wennington", "Jud Buechler", "Randy Brown"], spacers: 3, finishers: 3, defenders: 5 },
-        { name: "1994 Houston Rockets (Peak)", short: "HOU", color: 0xce1141, starters: ["Kenny Smith", "Vernon Maxwell", "Robert Horry", "Otis Thorpe", "Hakeem Olajuwon"], bench: ["Sam Cassell", "Mario Elie", "Carl Herrera", "Scott Brooks", "Matt Bullard"], spacers: 4, finishers: 3, defenders: 4 },
-        { name: "1993 Phoenix Suns (Peak)", short: "PHX", color: 0x1d1160, starters: ["Kevin Johnson", "Dan Majerle", "Richard Dumas", "Charles Barkley", "Mark West"], bench: ["Danny Ainge", "Tom Chambers", "Cedric Ceballos", "Oliver Miller", "Negele Knight"], spacers: 3, finishers: 5, defenders: 2 }
+        { name: "1996 Chicago Bulls (Peak 72-10)", short: "CHI", starters: ["Ron Harper", "Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Luc Longley"], bench: ["Steve Kerr", "Toni Kukoč", "Bill Wennington", "Jud Buechler", "Randy Brown"], spacers: 3, finishers: 3, defenders: 5 },
+        { name: "1994 Houston Rockets (Peak)", short: "HOU", starters: ["Kenny Smith", "Vernon Maxwell", "Robert Horry", "Otis Thorpe", "Hakeem Olajuwon"], bench: ["Sam Cassell", "Mario Elie", "Carl Herrera", "Scott Brooks", "Matt Bullard"], spacers: 4, finishers: 3, defenders: 4 },
+        { name: "1993 Phoenix Suns (Peak)", short: "PHX", starters: ["Kevin Johnson", "Dan Majerle", "Richard Dumas", "Charles Barkley", "Mark West"], bench: ["Danny Ainge", "Tom Chambers", "Cedric Ceballos", "Oliver Miller", "Negele Knight"], spacers: 3, finishers: 5, defenders: 2 }
       ],
       "80s": [
-        { name: "1986 Boston Celtics (Peak 67-15)", short: "BOS", color: 0x007a33, starters: ["Dennis Johnson", "Danny Ainge", "Larry Bird", "Kevin McHale", "Robert Parish"], bench: ["Bill Walton", "Jerry Sichting", "Scott Wedman", "Rick Carlisle", "Greg Kite"], spacers: 3, finishers: 4, defenders: 4 },
-        { name: "1987 Los Angeles Lakers (Peak Showtime)", short: "LAL", color: 0x552583, starters: ["Magic Johnson", "Byron Scott", "James Worthy", "A.C. Green", "Kareem Abdul-Jabbar"], bench: ["Michael Cooper", "Mychal Thompson", "Kurt Rambis", "Billy Thompson", "Wes Matthews"], spacers: 2, finishers: 5, defenders: 4 }
+        { name: "1986 Boston Celtics (Peak 67-15)", short: "BOS", starters: ["Dennis Johnson", "Danny Ainge", "Larry Bird", "Kevin McHale", "Robert Parish"], bench: ["Bill Walton", "Jerry Sichting", "Scott Wedman", "Rick Carlisle", "Greg Kite"], spacers: 3, finishers: 4, defenders: 4 },
+        { name: "1987 Los Angeles Lakers (Peak Showtime)", short: "LAL", starters: ["Magic Johnson", "Byron Scott", "James Worthy", "A.C. Green", "Kareem Abdul-Jabbar"], bench: ["Michael Cooper", "Mychal Thompson", "Kurt Rambis", "Billy Thompson", "Wes Matthews"], spacers: 2, finishers: 5, defenders: 4 }
       ],
       "00s": [
-        { name: "2001 Los Angeles Lakers (Peak 15-1)", short: "LAL", color: 0x552583, starters: ["Derek Fisher", "Kobe Bryant", "Rick Fox", "Horace Grant", "Shaquille O'Neal"], bench: ["Robert Horry", "Brian Shaw", "Tyronn Lue", "Ron Harper", "Devean George"], spacers: 3, finishers: 4, defenders: 4 },
-        { name: "2004 Detroit Pistons (Peak)", short: "DET", color: 0x1d428a, starters: ["Chauncey Billups", "Richard Hamilton", "Tayshaun Prince", "Rasheed Wallace", "Ben Wallace"], bench: ["Corliss Williamson", "Mehmet Okur", "Mike James", "Lindsey Hunter", "Darvin Ham"], spacers: 3, finishers: 3, defenders: 5 }
+        { name: "2001 Los Angeles Lakers (Peak 15-1)", short: "LAL", starters: ["Derek Fisher", "Kobe Bryant", "Rick Fox", "Horace Grant", "Shaquille O'Neal"], bench: ["Robert Horry", "Brian Shaw", "Tyronn Lue", "Ron Harper", "Devean George"], spacers: 3, finishers: 4, defenders: 4 },
+        { name: "2004 Detroit Pistons (Peak)", short: "DET", starters: ["Chauncey Billups", "Richard Hamilton", "Tayshaun Prince", "Rasheed Wallace", "Ben Wallace"], bench: ["Corliss Williamson", "Mehmet Okur", "Mike James", "Lindsey Hunter", "Darvin Ham"], spacers: 3, finishers: 3, defenders: 5 }
       ],
       "10s": [
-        { name: "2017 Golden State Warriors (Peak 16-1)", short: "GSW", color: 0x1d428a, starters: ["Stephen Curry", "Klay Thompson", "Kevin Durant", "Draymond Green", "Zaza Pachulia"], bench: ["Andre Iguodala", "Shaun Livingston", "David West", "JaVale McGee", "Ian Clark"], spacers: 5, finishers: 4, defenders: 5 },
-        { name: "2013 Miami Heat (Peak 27-Streak)", short: "MIA", color: 0x98002e, starters: ["Mario Chalmers", "Dwyane Wade", "LeBron James", "Udonis Haslem", "Chris Bosh"], bench: ["Ray Allen", "Shane Battier", "Mike Miller", "Norris Cole", "Chris Andersen"], spacers: 5, finishers: 4, defenders: 4 }
+        { name: "2017 Golden State Warriors (Peak 16-1)", short: "GSW", starters: ["Stephen Curry", "Klay Thompson", "Kevin Durant", "Draymond Green", "Zaza Pachulia"], bench: ["Andre Iguodala", "Shaun Livingston", "David West", "JaVale McGee", "Ian Clark"], spacers: 5, finishers: 4, defenders: 5 },
+        { name: "2013 Miami Heat (Peak 27-Streak)", short: "MIA", starters: ["Mario Chalmers", "Dwyane Wade", "LeBron James", "Udonis Haslem", "Chris Bosh"], bench: ["Ray Allen", "Shane Battier", "Mike Miller", "Norris Cole", "Chris Andersen"], spacers: 5, finishers: 4, defenders: 4 }
       ],
       "70s": [
-        { name: "1973 New York Knicks (Peak)", short: "NYK", color: 0x006bb6, starters: ["Walt Frazier", "Earl Monroe", "Bill Bradley", "Dave DeBusschere", "Willis Reed"], bench: ["Jerry Lucas", "Dean Meminger", "Phil Jackson", "John Gianelli", "Harthorne Wingo"], spacers: 1, finishers: 3, defenders: 5 }
+        { name: "1973 New York Knicks (Peak)", short: "NYK", starters: ["Walt Frazier", "Earl Monroe", "Bill Bradley", "Dave DeBusschere", "Willis Reed"], bench: ["Jerry Lucas", "Dean Meminger", "Phil Jackson", "John Gianelli", "Harthorne Wingo"], spacers: 1, finishers: 3, defenders: 5 }
       ],
       "60s": [
-        { name: "1965 Boston Celtics (Peak)", short: "BOS", color: 0x007a33, starters: ["K.C. Jones", "Sam Jones", "John Havlicek", "Tom Sanders", "Bill Russell"], bench: ["Tom Heinsohn", "Larry Siegfried", "Mel Counts", "John Thompson", "Willie Naulls"], spacers: 0, finishers: 4, defenders: 5 }
+        { name: "1965 Boston Celtics (Peak)", short: "BOS", starters: ["K.C. Jones", "Sam Jones", "John Havlicek", "Tom Sanders", "Bill Russell"], bench: ["Tom Heinsohn", "Larry Siegfried", "Mel Counts", "John Thompson", "Willie Naulls"], spacers: 0, finishers: 4, defenders: 5 }
       ],
       "50s": [
-        { name: "1954 Minneapolis Lakers (Peak)", short: "MNL", color: 0x002244, starters: ["Slater Martin", "Whitey Skoog", "Jim Pollard", "Vern Mikkelsen", "George Mikan"], bench: ["Clyde Lovellette", "Bob Harrison", "Jim Holstein", "Dick Schnittker", "Lew Hitch"], spacers: 0, finishers: 4, defenders: 4 }
+        { name: "1954 Minneapolis Lakers (Peak)", short: "MNL", starters: ["Slater Martin", "Whitey Skoog", "Jim Pollard", "Vern Mikkelsen", "George Mikan"], bench: ["Clyde Lovellette", "Bob Harrison", "Jim Holstein", "Dick Schnittker", "Lew Hitch"], spacers: 0, finishers: 4, defenders: 4 }
       ]
     };
 
@@ -551,7 +580,7 @@
 
     // Web Audio Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playAudioTone(freq, dur, type="sine", gainVal=0.1) {
+    function playAudio(freq, dur, type="sine", gainVal=0.1) {
       try {
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
@@ -637,7 +666,7 @@
 
         const currentCardIndex = Math.floor((currentX + viewportCenter) / step);
         if (currentCardIndex !== lastTick && currentCardIndex >= 0) {
-          playAudioTone(400, 0.02, "triangle", 0.08);
+          playAudio(400, 0.02, "triangle", 0.08);
           lastTick = currentCardIndex;
         }
 
@@ -782,10 +811,18 @@
       
       while (careerSimYear <= 20) {
         const age = 19 + careerSimYear;
-        const ppg = Math.round((assignments.mid.val * 0.15 + assignments.three.val * 0.15 + assignments.layups.val * 0.1) * 0.75 + (selectedTeam.spacers * 0.8));
-        const apg = Math.round((assignments.playmaking.val * 0.1) + (selectedTeam.finishers * 0.8));
-        const rpg = Math.round((assignments.frame.val * 0.08) + (assignments.defense.val * 0.03));
-        const wins = Math.min(73, Math.max(42, Math.round(50 + (assignments.iq.val - 85) + (selectedTeam.defenders * 2) + (Math.random() * 8 - 4))));
+        const midVal = assignments.mid ? assignments.mid.val : 85;
+        const threeVal = assignments.three ? assignments.three.val : 85;
+        const layVal = assignments.layups ? assignments.layups.val : 85;
+        const passVal = assignments.playmaking ? assignments.playmaking.val : 85;
+        const frameVal = assignments.frame ? assignments.frame.val : 85;
+        const defVal = assignments.defense ? assignments.defense.val : 85;
+        const iqVal = assignments.iq ? assignments.iq.val : 85;
+
+        const ppg = Math.round((midVal * 0.15 + threeVal * 0.15 + layVal * 0.1) * 0.75 + (selectedTeam.spacers * 0.8));
+        const apg = Math.round((passVal * 0.1) + (selectedTeam.finishers * 0.8));
+        const rpg = Math.round((frameVal * 0.08) + (defVal * 0.03));
+        const wins = Math.min(73, Math.max(42, Math.round(50 + (iqVal - 85) + (selectedTeam.defenders * 2) + (Math.random() * 8 - 4))));
 
         if (careerSimYear >= 3 && careerSimYear <= 14 && Math.random() > 0.65 && !pendingGame7) {
           pendingGame7 = true;
@@ -821,7 +858,7 @@
       row.style.background = userWon ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.15)";
       row.innerHTML = `
         <td style="padding: 6px;">Yr ${careerSimYear} (${age})</td>
-        <td>${selectedTeam.short}</td>
+        <td>${selectedTeam ? selectedTeam.short : 'GOAT'}</td>
         <td>64-18</td>
         <td>32.4</td>
         <td>11.2</td>
@@ -835,650 +872,267 @@
     }
 
     /* ============================================================
-       7. NEXT-GEN 3D GRAPHICS & ARENA ENGINE (FIXED)
+       7. TEXT-BASED ROLEPLAYING GAME 7 ENGINE
        ============================================================ */
-    let scene, camera, renderer, clock;
-    let goatRig, defRig, ballMesh;
-    let keys = {};
-    let isShooting = false;
-    let shotChargeTime = 0;
-    let isDefBlocking = false;
-    let ballInFlight = false;
-    let ballVelocity = new THREE.Vector3();
-    let userScore = 86, oppScore = 85, gameTimeSeconds = 120;
-    let gameInterval = null;
-    let comboChain = [];
-    let isReplay = false;
-    let replayBuffer = [];
-    const MAX_REPLAY = 360;
+    let rpgUserScore = 98;
+    let rpgOppScore = 97;
+    let rpgSeconds = 135; // 2:15 remaining in Q4
+    let rpgShotClock = 24;
+    let isUserPossession = true;
+    let gameOver = false;
 
-    // Basketball Pebble Bump Texture
-    function generatePebbleNormalMap() {
-      const c = document.createElement("canvas");
-      c.width = 256; c.height = 256;
-      const ctx = c.getContext("2d");
-      ctx.fillStyle = "#8080ff";
-      ctx.fillRect(0, 0, 256, 256);
+    function getStat(id, def=85) {
+      return (assignments[id] && assignments[id].val) ? assignments[id].val : def;
+    }
 
-      for (let x = 0; x < 256; x += 4) {
-        for (let y = 0; y < 256; y += 4) {
-          const shade = Math.floor(Math.random() * 40 + 100);
-          ctx.fillStyle = `rgb(${shade}, ${shade}, 255)`;
-          ctx.beginPath();
-          ctx.arc(x + 2, y + 2, 1.5, 0, Math.PI * 2);
-          ctx.fill();
+    function launchTextRPG() {
+      document.getElementById("rpg-game-modal").classList.add("open");
+      rpgUserScore = 98;
+      rpgOppScore = 97;
+      rpgSeconds = 135;
+      rpgShotClock = 24;
+      isUserPossession = true;
+      gameOver = false;
+      updateRPGScoreboard();
+
+      const feed = document.getElementById("rpg-feed");
+      feed.innerHTML = "";
+
+      addFeedEntry("game", "🎙️ MARV ALBERT:", "Welcome back to Game 7 of the NBA Finals! Two minutes left on the clock. The arena is deafening. Every possession will decide a championship dynasty.");
+      addFeedEntry("clutch", "🏀 CURRENT SITUATION:", "You have the ball at the top of the key. The defender is pressed up on your jersey. What move do you want to attempt?");
+    }
+
+    function closeRPG() {
+      document.getElementById("rpg-game-modal").classList.remove("open");
+    }
+
+    function updateRPGScoreboard() {
+      document.getElementById("rpg-user-score").textContent = `USER ${rpgUserScore}`;
+      document.getElementById("rpg-opp-score").textContent = `OPP ${rpgOppScore}`;
+      const m = Math.floor(rpgSeconds / 60);
+      const s = rpgSeconds % 60;
+      document.getElementById("rpg-clock").textContent = `Q4 ${m}:${s < 10 ? '0' : ''}${s}`;
+      document.getElementById("rpg-shotclock").textContent = `SHOT CLOCK: ${rpgShotClock}`;
+    }
+
+    function addFeedEntry(type, speaker, text, metaTag="") {
+      const feed = document.getElementById("rpg-feed");
+      const div = document.createElement("div");
+      div.className = `feed-entry ${type}`;
+      div.innerHTML = `
+        <div class="feed-meta">
+          <span><strong>${speaker}</strong></span>
+          ${metaTag ? `<span class="percentage-tag">${metaTag}</span>` : ""}
+        </div>
+        <div>${text}</div>
+      `;
+      feed.appendChild(div);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function applyPreset(text) {
+      document.getElementById("rpg-input").value = text;
+    }
+
+    /* Intelligent Natural Language Parsing Engine */
+    function submitRPGAction() {
+      if (gameOver) return;
+      const input = document.getElementById("rpg-input");
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+
+      if (isUserPossession) {
+        handleUserOffensivePossession(text);
+      } else {
+        handleUserDefensivePossession(text);
+      }
+    }
+
+    function handleUserOffensivePossession(userText) {
+      const t = userText.toLowerCase();
+
+      // Detect Move Keywords
+      const is3PT = t.includes("three") || t.includes("3pt") || t.includes("3-point") || t.includes("deep") || t.includes("arc") || t.includes("downtown") || t.includes("logo");
+      const isMid = t.includes("mid") || t.includes("midrange") || t.includes("fadeaway") || t.includes("pull up") || t.includes("elbow") || t.includes("step back") || t.includes("jumper");
+      const isDunk = t.includes("dunk") || t.includes("poster") || t.includes("slam") || t.includes("tomahawk") || t.includes("jam") || t.includes("cram");
+      const isLayup = t.includes("layup") || t.includes("floater") || t.includes("finger roll") || t.includes("reverse") || t.includes("scoop") || t.includes("euro");
+      const hasDribble = t.includes("crossover") || t.includes("between the legs") || t.includes("behind the back") || t.includes("hesi") || t.includes("spin") || t.includes("ankle");
+      const isPass = t.includes("pass") || t.includes("lob") || t.includes("dish") || t.includes("kick") || t.includes("alley-oop") || t.includes("find") || t.includes("pick and roll");
+
+      // Calculate Stats & Probabilities
+      let statUsed = 85;
+      let statName = "Overall Scoring";
+      let baseChance = 60;
+      let pointsScored = 2;
+
+      if (is3PT) {
+        statUsed = getStat("three", 88);
+        statName = `3PT Shooting (${statUsed})`;
+        baseChance = Math.round((statUsed / 100) * 58);
+        pointsScored = 3;
+      } else if (isDunk) {
+        statUsed = getStat("dunks", 90);
+        statName = `Dunks & Rim Power (${statUsed})`;
+        baseChance = Math.round((statUsed / 100) * 78);
+        pointsScored = 2;
+      } else if (isLayup) {
+        statUsed = getStat("layups", 88);
+        statName = `Layups & Inside Touch (${statUsed})`;
+        baseChance = Math.round((statUsed / 100) * 70);
+        pointsScored = 2;
+      } else if (isPass) {
+        statUsed = getStat("playmaking", 90);
+        statName = `Playmaking Vision (${statUsed})`;
+        baseChance = Math.round((statUsed / 100) * 75);
+        pointsScored = 2;
+      } else {
+        statUsed = getStat("mid", 88);
+        statName = `Mid-Range Mastery (${statUsed})`;
+        baseChance = Math.round((statUsed / 100) * 65);
+        pointsScored = 2;
+      }
+
+      // Handle Separation Bonus
+      let dribbleBonus = 0;
+      let ankleBroken = false;
+      if (hasDribble) {
+        const handleStat = getStat("handles", 86);
+        if (Math.random() < (handleStat / 100) * 0.55) {
+          dribbleBonus = 14;
+          ankleBroken = true;
+        } else {
+          dribbleBonus = 5;
         }
       }
 
-      ctx.strokeStyle = "#101010";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(0, 128); ctx.lineTo(256, 128);
-      ctx.moveTo(128, 0); ctx.lineTo(128, 256);
-      ctx.stroke();
+      // Clutch Multiplier from IQ
+      const iqStat = getStat("iq", 90);
+      const clutchBonus = Math.round((iqStat - 80) * 0.4);
 
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
+      const finalChance = Math.min(94, Math.max(25, baseChance + dribbleBonus + clutchBonus));
+      const roll = Math.floor(Math.random() * 100) + 1;
+      const success = roll <= finalChance;
 
-    // High-Gloss Polyurethane Maple Hardwood
-    function generateCourtHardwood() {
-      const c = document.createElement("canvas");
-      c.width = 1024; c.height = 1024;
-      const ctx = c.getContext("2d");
+      // Elapsed time
+      rpgSeconds -= 20;
+      rpgShotClock = 24;
 
-      ctx.fillStyle = "#d2a679";
-      ctx.fillRect(0, 0, 1024, 1024);
+      // Narrative Generation
+      addFeedEntry("user", "YOU ATTEMPT:", `"${userText}"`, `Calculated Chance: ${finalChance}% [${statName}]`);
 
-      for (let y = 0; y < 1024; y += 16) {
-        ctx.fillStyle = (y % 32 === 0) ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.05)";
-        ctx.fillRect(0, y, 1024, 16);
-        ctx.fillStyle = "rgba(70, 40, 15, 0.25)";
-        ctx.fillRect(0, y, 1024, 1);
+      if (ankleBroken) {
+        playAudio(700, 0.15, "sawtooth", 0.15);
+        addFeedEntry("clutch", "💥 ANKLE BREAKER!", "You snatch the defender's ankles with that vicious crossover! The defender stumbles to the hardwood as the crowd explodes!");
       }
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    // Photorealistic Face Texture
-    function generateRealisticFaceTexture(skinHex, facialHair) {
-      const c = document.createElement("canvas");
-      c.width = 512; c.height = 512;
-      const ctx = c.getContext("2d");
-
-      const grad = ctx.createRadialGradient(256, 256, 40, 256, 256, 260);
-      grad.addColorStop(0, skinHex || "#4a2c1d");
-      grad.addColorStop(1, "#180d08");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 512, 512);
-
-      // Cheek & Brow Highlights (Sweat)
-      ctx.fillStyle = "rgba(255,255,255,0.09)";
-      ctx.beginPath(); ctx.ellipse(256, 160, 120, 40, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(160, 290, 45, 30, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(352, 290, 45, 30, 0, 0, Math.PI * 2); ctx.fill();
-
-      // Eyes
-      [170, 342].forEach(ex => {
-        ctx.fillStyle = "#eeeeee";
-        ctx.beginPath(); ctx.ellipse(ex, 200, 36, 18, 0, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = "#2c1b12";
-        ctx.beginPath(); ctx.arc(ex, 200, 16, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = "#000000";
-        ctx.beginPath(); ctx.arc(ex, 200, 8, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath(); ctx.arc(ex - 4, 196, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.strokeStyle = "#100906"; ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(ex, 200, 36, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
-      });
-
-      // Brows
-      ctx.fillStyle = "#0a0604";
-      ctx.fillRect(130, 165, 80, 12);
-      ctx.fillRect(302, 165, 80, 12);
-
-      // Nose
-      ctx.fillStyle = "rgba(0,0,0,0.3)";
-      ctx.beginPath();
-      ctx.moveTo(256, 180); ctx.lineTo(240, 280); ctx.lineTo(272, 280);
-      ctx.fill();
-      ctx.fillStyle = "#080402";
-      ctx.beginPath(); ctx.arc(244, 286, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(268, 286, 6, 0, Math.PI * 2); ctx.fill();
-
-      // Lips
-      ctx.fillStyle = "#532a1e";
-      ctx.beginPath(); ctx.ellipse(256, 350, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#33160e";
-      ctx.fillRect(216, 349, 80, 3);
-
-      if (facialHair === "beard" || facialHair === "goatee") {
-        ctx.fillStyle = "rgba(8,5,3,0.75)";
-        ctx.beginPath(); ctx.arc(256, 360, 65, 0, Math.PI); ctx.fill();
-      }
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    function generateJerseyTexture(baseColorHex, number="23") {
-      const c = document.createElement("canvas");
-      c.width = 256; c.height = 256;
-      const ctx = c.getContext("2d");
-      const hexStr = (typeof baseColorHex === "number") ? baseColorHex.toString(16).padStart(6, '0') : "f59e0b";
-      ctx.fillStyle = `#${hexStr}`;
-      ctx.fillRect(0, 0, 256, 256);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 256, 28);
-      ctx.fillRect(0, 0, 26, 256);
-      ctx.fillRect(230, 0, 26, 256);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 96px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(number, 128, 160);
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    // Anatomical Player Builder
-    function buildPhotorealisticPlayer(jerseyColor, skinHex, hairStyle, facialHair, scale=1.0) {
-      const root = new THREE.Group();
-
-      const skinMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(skinHex || "#4a2c1d"),
-        roughness: 0.35,
-        metalness: 0.05,
-        clearcoat: 0.6, // Sweat Sheen
-        clearcoatRoughness: 0.2
-      });
-
-      const jerseyTex = generateJerseyTexture(jerseyColor, "23");
-      const jerseyMat = new THREE.MeshStandardMaterial({ map: jerseyTex, roughness: 0.5 });
-      const shortsMat = new THREE.MeshStandardMaterial({ color: jerseyColor || 0xf59e0b, roughness: 0.5 });
-      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.25 });
-      const sockMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.8 });
-
-      // Torso
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(1.15 * scale, 1.45 * scale, 0.65 * scale), jerseyMat);
-      torso.position.y = 2.4 * scale;
-      torso.castShadow = true;
-      root.add(torso);
-
-      // Neck & Head
-      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.22 * scale, 0.35 * scale, 12), skinMat);
-      neck.position.y = 0.82 * scale;
-      torso.add(neck);
-
-      const headGeo = new THREE.SphereGeometry(0.44 * scale, 24, 24);
-      const faceTex = generateRealisticFaceTexture(skinHex, facialHair);
-      const headMat = new THREE.MeshPhysicalMaterial({
-        map: faceTex,
-        roughness: 0.35,
-        clearcoat: 0.5,
-        clearcoatRoughness: 0.2
-      });
-      const head = new THREE.Mesh(headGeo, headMat);
-      head.position.y = 0.48 * scale;
-      head.rotation.y = -Math.PI / 2;
-      neck.add(head);
-
-      // Left Arm
-      const lShoulder = new THREE.Group(); lShoulder.position.set(-0.72 * scale, 0.58 * scale, 0); torso.add(lShoulder);
-      const lDelt = new THREE.Mesh(new THREE.SphereGeometry(0.22 * scale, 12, 12), skinMat); lShoulder.add(lDelt);
-      const lBicep = new THREE.Mesh(new THREE.CylinderGeometry(0.17 * scale, 0.15 * scale, 0.75 * scale, 12), skinMat); lBicep.position.y = -0.38 * scale; lShoulder.add(lBicep);
-      const lElbow = new THREE.Group(); lElbow.position.y = -0.38 * scale; lBicep.add(lElbow);
-      const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.13 * scale, 0.7 * scale, 12), skinMat); lForearm.position.y = -0.35 * scale; lElbow.add(lForearm);
-      const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.16 * scale, 0.24 * scale, 0.08 * scale), skinMat); lHand.position.y = -0.42 * scale; lForearm.add(lHand);
-
-      // Right Arm (Shooting Arm)
-      const rShoulder = new THREE.Group(); rShoulder.position.set(0.72 * scale, 0.58 * scale, 0); torso.add(rShoulder);
-      const rDelt = new THREE.Mesh(new THREE.SphereGeometry(0.22 * scale, 12, 12), skinMat); rShoulder.add(rDelt);
-      const rBicep = new THREE.Mesh(new THREE.CylinderGeometry(0.17 * scale, 0.15 * scale, 0.75 * scale, 12), skinMat); rBicep.position.y = -0.38 * scale; rShoulder.add(rBicep);
-      const rElbow = new THREE.Group(); rElbow.position.y = -0.38 * scale; rBicep.add(rElbow);
-      const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.13 * scale, 0.7 * scale, 12), skinMat); rForearm.position.y = -0.35 * scale; rElbow.add(rForearm);
-      const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.16 * scale, 0.24 * scale, 0.08 * scale), skinMat); rHand.position.y = -0.42 * scale; rForearm.add(rHand);
-
-      // Pelvis / Shorts
-      const pelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.58 * scale, 0.52 * scale, 0.85 * scale, 16), shortsMat);
-      pelvis.position.y = -0.95 * scale;
-      torso.add(pelvis);
-
-      // Legs
-      const lHip = new THREE.Group(); lHip.position.set(-0.3 * scale, -0.4 * scale, 0); pelvis.add(lHip);
-      const lThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22 * scale, 0.18 * scale, 0.95 * scale, 12), skinMat); lThigh.position.y = -0.48 * scale; lHip.add(lThigh);
-      const lKnee = new THREE.Group(); lKnee.position.y = -0.48 * scale; lThigh.add(lKnee);
-      const lCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.14 * scale, 0.95 * scale, 12), sockMat); lCalf.position.y = -0.48 * scale; lKnee.add(lCalf);
-      const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.26 * scale, 0.24 * scale, 0.62 * scale), shoeMat); lShoe.position.set(0, -0.52 * scale, 0.12 * scale); lCalf.add(lShoe);
-
-      const rHip = new THREE.Group(); rHip.position.set(0.3 * scale, -0.4 * scale, 0); pelvis.add(rHip);
-      const rThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.22 * scale, 0.18 * scale, 0.95 * scale, 12), skinMat); rThigh.position.y = -0.48 * scale; rHip.add(rThigh);
-      const rKnee = new THREE.Group(); rKnee.position.y = -0.48 * scale; rThigh.add(rKnee);
-      const rCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * scale, 0.14 * scale, 0.95 * scale, 12), sockMat); rCalf.position.y = -0.48 * scale; rKnee.add(rCalf);
-      const rShoe = new THREE.Mesh(new THREE.BoxGeometry(0.26 * scale, 0.24 * scale, 0.62 * scale), shoeMat); rShoe.position.set(0, -0.52 * scale, 0.12 * scale); rCalf.add(rShoe);
-
-      return {
-        root, torso, neck, head,
-        lShoulder, lElbow, lHand,
-        rShoulder, rElbow, rHand,
-        lHip, lKnee, rHip, rKnee
-      };
-    }
-
-    // Perimeter-Only Arena Bleachers (No Solid Center Box!)
-    function buildArenaStadium() {
-      const stadium = new THREE.Group();
-      const standsMat = new THREE.MeshStandardMaterial({ color: 0x111622, roughness: 0.85 });
-
-      // Left Bleachers
-      const lStands = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 54), standsMat);
-      lStands.position.set(-21, 3.5, 0);
-      stadium.add(lStands);
-
-      // Right Bleachers
-      const rStands = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 54), standsMat);
-      rStands.position.set(21, 3.5, 0);
-      stadium.add(rStands);
-
-      // Back Bleachers (Behind Hoop)
-      const bStands = new THREE.Mesh(new THREE.BoxGeometry(42, 8, 10), standsMat);
-      bStands.position.set(0, 3.5, -31);
-      stadium.add(bStands);
-
-      // Courtside LED Ribbon Board
-      const ledGeo = new THREE.BoxGeometry(30, 1.2, 0.3);
-      const ledMat = new THREE.MeshBasicMaterial({ color: 0x0088ff });
-      const ledBoard = new THREE.Mesh(ledGeo, ledMat);
-      ledBoard.position.set(0, 0.6, -24.8);
-      stadium.add(ledBoard);
-
-      // Overhead Jumbotron (Hangs High at y = 28)
-      const jumboGroup = new THREE.Group();
-      jumboGroup.position.set(0, 28, 0);
-
-      const jumboGeo = new THREE.BoxGeometry(10, 6, 10);
-      const jumboMesh = new THREE.Mesh(jumboGeo, new THREE.MeshBasicMaterial({ color: 0x0a1020 }));
-      jumboGroup.add(jumboMesh);
-
-      const screenMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-      const screen1 = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), screenMat);
-      screen1.position.set(0, 0, 5.05); jumboGroup.add(screen1);
-      const screen2 = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), screenMat);
-      screen2.rotation.y = Math.PI; screen2.position.set(0, 0, -5.05); jumboGroup.add(screen2);
-      stadium.add(jumboGroup);
-
-      scene.add(stadium);
-    }
-
-    function init3D() {
-      const canvas = document.getElementById("three-canvas");
-      scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x06080d);
-
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 15, 25);
-
-      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-      // Vibrant Arena Lighting
-      scene.add(new THREE.HemisphereLight(0xddeeff, 0x222233, 0.7));
-
-      const spotLight = new THREE.SpotLight(0xfffaed, 1.6);
-      spotLight.position.set(0, 36, 10);
-      spotLight.angle = Math.PI / 3;
-      spotLight.penumbra = 0.5;
-      spotLight.castShadow = true;
-      spotLight.shadow.mapSize.width = 1024;
-      spotLight.shadow.mapSize.height = 1024;
-      scene.add(spotLight);
-
-      // High-Gloss Court
-      const courtGeo = new THREE.PlaneGeometry(30, 50);
-      const hardwoodTex = generateCourtHardwood();
-      const courtMat = new THREE.MeshPhysicalMaterial({
-        map: hardwoodTex,
-        roughness: 0.2,
-        metalness: 0.05,
-        clearcoat: 0.85,
-        clearcoatRoughness: 0.15
-      });
-      const court = new THREE.Mesh(courtGeo, courtMat);
-      court.rotation.x = -Math.PI / 2;
-      court.receiveShadow = true;
-      scene.add(court);
-
-      // Court Lines
-      const linesMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const arc = new THREE.Mesh(new THREE.RingGeometry(6.8, 7.0, 48, 1, 0, Math.PI), linesMat);
-      arc.rotation.x = -Math.PI / 2; arc.rotation.z = Math.PI; arc.position.set(0, 0.02, -15);
-      scene.add(arc);
-
-      buildArenaStadium();
-      createHoop(new THREE.Vector3(0, 0, -22));
-
-      // Build GOAT & Defender with Resilient Defaults
-      const goatSkin = (assignments.frame && assignments.frame.raw) ? assignments.frame.raw.skinTone : "#4a2c1d";
-      const goatHair = (assignments.frame && assignments.frame.raw) ? assignments.frame.raw.hairStyle : "short";
-      const goatFacial = (assignments.frame && assignments.frame.raw) ? assignments.frame.raw.facialHair : "beard";
-      const goatScale = assignments.frame ? (assignments.frame.val / 88) : 1.0;
-
-      goatRig = buildPhotorealisticPlayer(selectedTeam ? selectedTeam.color : 0xf59e0b, goatSkin, goatHair, goatFacial, goatScale);
-      goatRig.root.position.set(0, 0, 6);
-      scene.add(goatRig.root);
-
-      defRig = buildPhotorealisticPlayer(0xce1141, "#2b1810", "fade", "goatee", 1.0);
-      defRig.root.position.set(0, 0, 0);
-      scene.add(defRig.root);
-
-      // Pebble Leather Basketball
-      const ballGeo = new THREE.SphereGeometry(0.38, 24, 24);
-      const pebbleNormal = generatePebbleNormalMap();
-      const ballMat = new THREE.MeshPhysicalMaterial({
-        color: 0xdf5a00,
-        normalMap: pebbleNormal,
-        roughness: 0.45,
-        clearcoat: 0.2
-      });
-      ballMesh = new THREE.Mesh(ballGeo, ballMat);
-      ballMesh.castShadow = true;
-      scene.add(ballMesh);
-
-      clock = new THREE.Clock();
-      window.addEventListener("resize", () => {
-        if (!renderer || !camera) return;
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
-    }
-
-    function createHoop(pos) {
-      const g = new THREE.Group();
-      const stanchion = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 8.5), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.4 }));
-      stanchion.position.set(0, 4.25, -2.5); g.add(stanchion);
-
-      const bb = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.8, 0.12), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.88, roughness: 0.1 }));
-      bb.position.set(0, 5.6, 0); g.add(bb);
-
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.05, 12, 32), new THREE.MeshStandardMaterial({ color: 0xff3300, roughness: 0.3 }));
-      rim.rotation.x = Math.PI / 2; rim.position.set(0, 4.8, 0.7); g.add(rim);
-
-      g.position.copy(pos);
-      scene.add(g);
-    }
-
-    /* Controls: Movement, Shooting, Passing, Dribbles & Blocks */
-    window.addEventListener("keydown", (e) => {
-      const k = e.key.toUpperCase();
-      keys[k] = true;
-
-      // Dribbles: Q, E, F, G, Z, X
-      if (["Q", "E", "F", "G", "Z", "X"].includes(k) && !ballInFlight) {
-        comboChain.push(k);
-        if (comboChain.length > 3) comboChain.shift();
-        const shiftX = (k === "Q" || k === "F" || k === "Z") ? -0.85 : 0.85;
-        goatRig.root.position.x += shiftX;
-
-        const dist = goatRig.root.position.distanceTo(defRig.root.position);
-        const handles = assignments.handles ? assignments.handles.val : 85;
-        if (dist < 4.5 && Math.random() < (handles / 100) * 0.45) {
-          triggerAnkleStumble();
-        }
-      }
-
-      // 2K Shot Meter (Space)
-      if (e.code === "Space" && !ballInFlight && !isShooting) {
-        isShooting = true;
-        shotChargeTime = 0;
-        document.getElementById("shot-meter-wrap").style.display = "block";
-      }
-
-      // Defensive Block Contest (B or L)
-      if ((k === "B" || k === "L") && !isDefBlocking) {
-        triggerBlockContest();
-      }
-
-      if (k === "P" && ballInFlight) ballInFlight = false;
-    });
-
-    window.addEventListener("keyup", (e) => {
-      const k = e.key.toUpperCase();
-      keys[k] = false;
-
-      // 2K Shot Meter Release
-      if (e.code === "Space" && isShooting) {
-        isShooting = false;
-        document.getElementById("shot-meter-wrap").style.display = "none";
-        releaseJumpshot();
-      }
-    });
-
-    function triggerAnkleStumble() {
-      const ann = document.getElementById("game-announcement");
-      ann.textContent = "💥 ANKLE BREAKER!";
-      ann.style.display = "block";
-      setTimeout(() => ann.style.display = "none", 1200);
-
-      defRig.torso.rotation.x = -0.4;
-      defRig.root.position.z += 2.2;
-      setTimeout(() => { defRig.torso.rotation.x = 0; }, 900);
-    }
-
-    function triggerBlockContest() {
-      isDefBlocking = true;
-      defRig.rShoulder.rotation.x = Math.PI * 0.95;
-      defRig.lShoulder.rotation.x = Math.PI * 0.95;
-      defRig.root.position.y = 1.9;
 
       setTimeout(() => {
-        defRig.rShoulder.rotation.x = 0;
-        defRig.lShoulder.rotation.x = 0;
-        defRig.root.position.y = 0;
-        isDefBlocking = false;
+        if (success) {
+          rpgUserScore += pointsScored;
+          playAudio(880, 0.25, "sine", 0.2); // Green release tone
+          playAudio(300, 0.2, "triangle", 0.18); // Swish
+
+          if (is3PT) {
+            addFeedEntry("make", "🎙️ MIKE BREEN:", `BANG! BANG! It's good from downtown! A cold-blooded dagger with ${rpgSeconds} seconds remaining!`);
+          } else if (isDunk) {
+            addFeedEntry("make", "🎙️ KEVIN HARLAN:", `OH, HE LEAPS RIGHT OVER THE DEFENDER AND ROCKS THE RIM WITH UNBELIEVABLE FORCE! What an iconic slam!`);
+          } else if (isPass) {
+            addFeedEntry("make", "🎙️ COLOR COMMENTATOR:", `Generational court vision! Threads the needle right into the breadbasket for the uncontested bucket!`);
+          } else {
+            addFeedEntry("make", "🎙️ MARV ALBERT:", `Rises up over the outstretched hand... YES! Beautiful touch off the glass!`);
+          }
+        } else {
+          playAudio(180, 0.25, "square", 0.12); // Clank
+          addFeedEntry("opp", "🎙️ MARV ALBERT:", `Contested shot... rim out! The ball bounces off the back iron and the defense collects the critical defensive rebound.`);
+        }
+
+        updateRPGScoreboard();
+        checkGameOverOrNextPossession();
       }, 700);
     }
 
-    function releaseJumpshot() {
-      ballInFlight = true;
-      const isGreen = shotChargeTime >= 68 && shotChargeTime <= 82;
+    function handleUserDefensivePossession(userText) {
+      const t = userText.toLowerCase();
 
-      if (isGreen) {
-        playAudioTone(880, 0.25, "sine", 0.2);
-        const ann = document.getElementById("game-announcement");
-        ann.textContent = "🟢 EXCELLENT RELEASE (GREEN)!";
-        ann.style.display = "block";
-        setTimeout(() => ann.style.display = "none", 1100);
+      const isBlock = t.includes("block") || t.includes("swat") || t.includes("reject") || t.includes("pin");
+      const isSteal = t.includes("steal") || t.includes("strip") || t.includes("poke") || t.includes("rip");
+      const isContest = t.includes("contest") || t.includes("hands up") || t.includes("deny") || t.includes("lock") || t.includes("smother");
+
+      const defStat = getStat("defense", 88);
+      const vertStat = getStat("vert", 85);
+
+      let stopChance = Math.round((defStat / 100) * 62);
+      let actionTag = `Defense Rating (${defStat})`;
+
+      if (isBlock) {
+        stopChance = Math.round(((defStat + vertStat) / 200) * 68);
+        actionTag = `Block Rating (${defStat} Def / ${vertStat} Vert)`;
+      } else if (isSteal) {
+        stopChance = Math.round((defStat / 100) * 55);
+        actionTag = `Steal Attempt (${defStat} Def)`;
       }
 
-      const rim = new THREE.Vector3(0, 4.8, -21.3);
-      const startPos = ballMesh.position.clone();
-      const dist = startPos.distanceTo(rim);
+      const roll = Math.floor(Math.random() * 100) + 1;
+      const stopSuccessful = roll <= stopChance;
 
-      ballVelocity.subVectors(rim, startPos).multiplyScalar(0.04);
-      ballVelocity.y = 0.44 + (dist * 0.016);
+      rpgSeconds -= 20;
+      rpgShotClock = 24;
 
-      // Mid-Air Block Swat Detection
-      const blockInterval = setInterval(() => {
-        if (!ballInFlight) { clearInterval(blockInterval); return; }
-        if (isDefBlocking && ballMesh.position.distanceTo(defRig.root.position) < 3.2) {
-          clearInterval(blockInterval);
-          ballVelocity.set(0, -0.16, 0.38);
-          const ann = document.getElementById("game-announcement");
-          ann.textContent = "🚫 BLOCKED SHOT!";
-          ann.style.display = "block";
-          setTimeout(() => ann.style.display = "none", 1300);
-          setTimeout(() => { ballInFlight = false; }, 1400);
-        }
-      }, 50);
+      addFeedEntry("user", "DEFENSIVE CALL:", `"${userText}"`, `Stop Probability: ${stopChance}% [${actionTag}]`);
 
       setTimeout(() => {
-        clearInterval(blockInterval);
-        const threeVal = assignments.three ? assignments.three.val : 85;
-        const hit = isGreen || (Math.random() < (threeVal / 115));
-        if (hit && ballVelocity.y > -0.1) {
-          userScore += (dist > 18 ? 3 : 2);
-          document.getElementById("hud-score-board").textContent = `USER ${userScore} - ${oppScore} OPP`;
-          playAudioTone(300, 0.15, "triangle", 0.15);
-          triggerHighlight();
+        if (stopSuccessful) {
+          playAudio(520, 0.2, "sine", 0.2);
+          if (isBlock) {
+            addFeedEntry("make", "🎙️ KEVIN HARLAN:", "GET THAT OUT OF HERE! A thunderous rejection swatted into the 3rd row!");
+          } else if (isSteal) {
+            addFeedEntry("make", "🎙️ MARV ALBERT:", "Pokes it loose! Stripped clean! You dive on the hardwood to secure the clutch turnover!");
+          } else {
+            addFeedEntry("make", "🎙️ COLOR COMMENTATOR:", "Smothering perimeter defense! Forces an awkward, off-balance airball as the shot clock expires!");
+          }
         } else {
-          ballVelocity.set(0, 0.1, 0.2);
+          rpgOppScore += 2;
+          playAudio(250, 0.2, "triangle", 0.15);
+          addFeedEntry("opp", "🎙️ COLOR COMMENTATOR:", "Tough shot maker. The opponent hits a leaning runner off the glass through contact.");
         }
+
+        updateRPGScoreboard();
+        checkGameOverOrNextPossession();
+      }, 700);
+    }
+
+    function checkGameOverOrNextPossession() {
+      if (rpgSeconds <= 0) {
+        gameOver = true;
+        playAudio(120, 0.8, "sawtooth", 0.25); // Game buzzer
+        document.getElementById("rpg-clock").textContent = "FINAL";
+        document.getElementById("rpg-shotclock").textContent = "0.0";
+
+        const won = rpgUserScore > rpgOppScore;
+        if (won) {
+          playAudio(600, 0.5, "sine", 0.25);
+          addFeedEntry("clutch", "🏆 WORLD CHAMPIONS!", `THE FINAL BUZZER SOUNDS! YOU WIN GAME 7 BY A SCORE OF ${rpgUserScore} TO ${rpgOppScore}! STREAMERS RAIN FROM THE RAFTERS! You are hoisted on your teammates' shoulders as Finals MVP!`);
+        } else {
+          addFeedEntry("opp", "💔 HEARTBREAK IN GAME 7", `The final buzzer sounds. You fall short ${rpgOppScore} to ${rpgUserScore}. An agonizing end to an all-time classic battle.`);
+        }
+
         setTimeout(() => {
-          ballInFlight = false;
-          goatRig.root.position.set(0, 0, 7);
-        }, 1400);
-      }, 1100);
-    }
-
-    function triggerHighlight() {
-      isReplay = true;
-      document.getElementById("replay-banner").style.display = "block";
-      let idx = 0;
-
-      const rTimer = setInterval(() => {
-        if (idx >= replayBuffer.length) {
-          clearInterval(rTimer);
-          isReplay = false;
-          document.getElementById("replay-banner").style.display = "none";
-          return;
-        }
-        const s = replayBuffer[idx];
-        goatRig.root.position.copy(s.goat);
-        ballMesh.position.copy(s.ball);
-        camera.position.set(s.goat.x + 6, 8, s.goat.z + 10);
-        camera.lookAt(s.goat);
-        idx += 2;
-      }, 25);
-    }
-
-    function animate3D() {
-      if (!scene) return;
-      requestAnimationFrame(animate3D);
-
-      if (!isReplay) {
-        const spd = assignments.speed ? (assignments.speed.val / 100) * 0.22 : 0.18;
-        const isMoving = keys["W"] || keys["S"] || keys["A"] || keys["D"];
-
-        if (keys["W"]) goatRig.root.position.z -= spd;
-        if (keys["S"]) goatRig.root.position.z += spd;
-        if (keys["A"]) goatRig.root.position.x -= spd;
-        if (keys["D"]) goatRig.root.position.x += spd;
-
-        goatRig.root.position.x = Math.max(-12, Math.min(12, goatRig.root.position.x));
-        goatRig.root.position.z = Math.max(-23, Math.min(23, goatRig.root.position.z));
-
-        // Running Legs Cycle
-        const runCycle = Math.sin(performance.now() * 0.015);
-        if (isMoving && !isShooting) {
-          goatRig.lHip.rotation.x = runCycle * 0.7;
-          goatRig.rHip.rotation.x = -runCycle * 0.7;
-          goatRig.lShoulder.rotation.x = -runCycle * 0.5;
-          goatRig.rShoulder.rotation.x = runCycle * 0.5;
-        } else if (!isShooting) {
-          goatRig.lHip.rotation.x = 0;
-          goatRig.rHip.rotation.x = 0;
-          goatRig.lShoulder.rotation.x = 0;
-          goatRig.rShoulder.rotation.x = 0;
-        }
-
-        // Two-Motion Jumpshot Mechanics
-        if (isShooting) {
-          shotChargeTime += 1.35;
-          document.getElementById("shot-meter-fill").style.height = `${Math.min(100, shotChargeTime)}%`;
-
-          goatRig.root.position.y = Math.min(1.6, shotChargeTime * 0.022);
-          goatRig.rShoulder.rotation.x = Math.PI * 0.75;
-          goatRig.rElbow.rotation.x = -Math.PI * 0.45;
-          goatRig.lShoulder.rotation.x = Math.PI * 0.5;
-
-          ballMesh.position.set(
-            goatRig.root.position.x + 0.35,
-            goatRig.root.position.y + 3.4,
-            goatRig.root.position.z - 0.2
-          );
-        } else if (!ballInFlight) {
-          goatRig.root.position.y = 0;
-          ballMesh.position.set(
-            goatRig.root.position.x + 0.5,
-            Math.abs(Math.sin(performance.now() * 0.012)) * 1.2 + 0.38,
-            goatRig.root.position.z - 0.2
-          );
+          if (pendingGame7) {
+            closeRPG();
+            continueSimPostGame7(won);
+          }
+        }, 3500);
+      } else {
+        isUserPossession = !isUserPossession;
+        if (isUserPossession) {
+          addFeedEntry("clutch", "🏀 YOUR POSSESSION:", `Score: USER ${rpgUserScore} - ${rpgOppScore} OPP with ${rpgSeconds}s left. Describe your offensive attack.`);
         } else {
-          ballMesh.position.add(ballVelocity);
-          ballVelocity.y -= 0.018;
-          ballMesh.rotation.x += 0.15;
+          addFeedEntry("opp", "⚠️ OPPONENT ATTACK:", `The opposing star isolates on the wing with ${rpgSeconds}s left. How are you defending him?`);
         }
-
-        // Defender Tracking
-        const defTarget = goatRig.root.position.clone().add(new THREE.Vector3(0, 0, 1.8));
-        defRig.root.position.lerp(defTarget, 0.03);
-
-        // Smooth Camera Follow
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, goatRig.root.position.x * 0.4, 0.05);
-        camera.position.z = THREE.MathUtils.lerp(camera.position.z, goatRig.root.position.z + 18, 0.05);
-        camera.position.y = 15;
-        camera.lookAt(new THREE.Vector3(goatRig.root.position.x * 0.3, 2.2, goatRig.root.position.z - 6));
-
-        replayBuffer.push({ goat: goatRig.root.position.clone(), ball: ballMesh.position.clone() });
-        if (replayBuffer.length > MAX_REPLAY) replayBuffer.shift();
       }
-
-      renderer.render(scene, camera);
     }
 
-    function launch3DGame() {
-      document.getElementById("game3d-container").style.display = "block";
-      if (!scene) init3D();
-      userScore = 86; oppScore = 85; gameTimeSeconds = 120;
-      document.getElementById("hud-score-board").textContent = `USER ${userScore} - ${oppScore} OPP`;
-
-      if (gameInterval) clearInterval(gameInterval);
-      gameInterval = setInterval(() => {
-        gameTimeSeconds--;
-        const m = Math.floor(gameTimeSeconds / 60);
-        const s = gameTimeSeconds % 60;
-        document.getElementById("hud-clock").textContent = `Q4 ${m}:${s < 10 ? '0' : ''}${s}`;
-
-        if (gameTimeSeconds % 25 === 0 && Math.random() > 0.4) {
-          oppScore += 2;
-          document.getElementById("hud-score-board").textContent = `USER ${userScore} - ${oppScore} OPP`;
-        }
-
-        if (gameTimeSeconds <= 0) {
-          clearInterval(gameInterval);
-          const won = userScore >= oppScore;
-          alert(won ? "🎉 YOU WON GAME 7! NBA CHAMPIONS!" : "Defeat in Game 7.");
-          exit3DGame();
-          continueSimPostGame7(won);
-        }
-      }, 1000);
-
-      animate3D();
-    }
-
-    function exit3DGame() {
-      if (gameInterval) clearInterval(gameInterval);
-      document.getElementById("game3d-container").style.display = "none";
-    }
-
-    /* Modals & Roster Search */
+    /* Modal helpers */
     function openModal(id) { document.getElementById(id).classList.add("open"); }
     function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 
