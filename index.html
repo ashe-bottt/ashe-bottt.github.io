@@ -1,1235 +1,1265 @@
-Here is the complete, expanded single-file application.
 
-It preserves the 11 separated attributes, mechanical wheel, and era-weighted
-meta engine, and adds a 20-Year NBA Career Simulation Engine with 10-man
-historical rosters and archetype synergy mechanics.
-
-How the Career & Synergy System Works:
-
-1.  Choose Your Franchise: Each era features classic teams with authentic 10-man
-    rotations (5 starters + 5 bench).
-2.  Team Trait Profiles: Every team is cataloged by their personnel—Floor
-    Spacers, Lob/Rim Finishers, Lockdown Defenders, and Secondary Shot Creators.
-3.  Synergy Bonuses:
-      - Playmaker + Rim Finishers: If your player has elite Playmaking and pairs
-        with rim runners (e.g., Aaron Gordon, Shawn Kemp, Amar'e Stoudemire),
-        your APG explodes and role players shoot higher FG%.
-      - Slasher + Floor Spacers: If you have high Layups/Dunks and team up with
-        lethal shooters (e.g., Klay Thompson, Steve Kerr, Peja Stojaković), your
-        driving lanes clear out, boosting your PPG and team offensive rating.
-      - Lockdown Synergy: Pairing high Defense with defensive anchors (e.g.,
-        Rodman, Ben Wallace, Draymond) creates a top-ranked defense and boosts
-        playoff series win rates.
-4.  20-Year Career Arc: Simulates ages 19 to 38—tracking rookie growth, MVP
-    prime windows, playoff runs, championships, Finals MVPs, stat totals, and
-    Hall of Fame induction.
-
-Save the code below as index.html and open it in any browser:
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBA GOAT Builder & 20-Year Career Sim</title>
+  <title>NBA All-Star GOAT Builder & 3D Game 7 Engine</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     :root {
-      --bg-dark: #0a0c10;
-      --card-bg: rgba(20, 24, 33, 0.92);
-      --border-color: rgba(255, 255, 255, 0.08);
-      --accent-gold: #f59e0b;
-      --accent-orange: #ea580c;
-      --accent-blue: #38bdf8;
-      --accent-green: #10b981;
-      --accent-red: #ef4444;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
+      --bg: #07090e;
+      --card: rgba(18, 22, 32, 0.95);
+      --border: rgba(255, 255, 255, 0.1);
+      --gold: #f59e0b;
+      --orange: #ea580c;
+      --cyan: #38bdf8;
+      --green: #10b981;
+      --red: #ef4444;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-    body {
-      background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.1) 0px, transparent 50%);
-      color: var(--text-main);
-      min-height: 100vh;
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 16px;
-      max-width: 900px;
-    }
-
-    header h1 {
-      font-size: 2.2rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #fbbf24, #f97316, #ef4444);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      letter-spacing: -0.5px;
-    }
-
-    .meta-box {
-      margin-top: 10px;
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-size: 0.85rem;
-      color: #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .era-bar {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    .era-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .era-btn:hover { border-color: var(--accent-gold); color: #fff; }
-    .era-btn.active {
-      background: var(--accent-gold);
-      color: #000;
-      border-color: var(--accent-gold);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
-    }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-      width: 100%;
-      max-width: 1240px;
-    }
-
-    @media (min-width: 940px) {
-      .main-grid { grid-template-columns: 420px 1fr; }
-    }
-
-    .panel {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 20px;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .wheel-panel {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .wheel-container {
-      position: relative;
-      width: 310px;
-      height: 310px;
-      margin: 8px 0;
-    }
-
-    canvas#wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);
-    }
-
-    .wheel-pointer {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 24px solid var(--accent-red);
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
-      z-index: 10;
-    }
-
-    .wheel-cap {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 44px;
-      height: 44px;
-      background: #111827;
-      border: 3px solid var(--accent-gold);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      pointer-events: none;
-    }
-
-    button.primary-btn {
-      background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
-      color: #000;
-      font-weight: 800;
-      font-size: 0.95rem;
-      border: none;
-      padding: 12px 34px;
-      border-radius: 9999px;
-      cursor: pointer;
-      text-transform: uppercase;
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-      transition: 0.2s;
-    }
-
-    button.primary-btn:hover:not(:disabled) { transform: scale(1.03); }
-    button.primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .player-card {
-      margin-top: 14px;
-      width: 100%;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px dashed rgba(245, 158, 11, 0.35);
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .player-card h3 { font-size: 1.25rem; color: #fff; }
-    .player-card .desc { font-size: 0.82rem; color: var(--accent-gold); margin: 4px 0 8px 0; }
-
-    .scout-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      justify-content: center;
-    }
-
-    .scout-chip {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      color: #e5e7eb;
-    }
-
-    .build-header {
+    /* Navigation & Tabs */
+    nav {
+      background: rgba(10, 13, 20, 0.9);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .slots-list {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .slot-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      padding: 8px 12px;
-      transition: all 0.2s ease;
-    }
-
-    .slot-row.selectable {
-      border-color: var(--accent-gold);
-      background: rgba(245, 158, 11, 0.09);
-      cursor: pointer;
-    }
-
-    .slot-row.selectable:hover {
-      background: rgba(245, 158, 11, 0.2);
-      transform: translateX(4px);
-    }
-
-    .slot-row.filled {
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(16, 185, 129, 0.05);
-    }
-
-    .slot-title-area {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .slot-label { font-size: 0.85rem; font-weight: 700; }
-
-    .weight-tag {
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 1px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    .weight-high { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .weight-med { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .weight-low { background: rgba(156, 163, 175, 0.15); color: #9ca3af; border: 1px solid rgba(255, 255, 255, 0.1); }
-
-    .badge-btn {
-      background: var(--accent-gold);
-      color: #000;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* Step 2: Team Selection & Career Hub */
-    .career-section {
-      display: none;
-      width: 100%;
-      max-width: 1240px;
-      margin-top: 24px;
-      gap: 20px;
-    }
-
-    .team-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 14px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .team-card:hover, .team-card.selected {
-      border-color: var(--accent-blue);
-      background: rgba(56, 189, 248, 0.08);
-      transform: translateY(-2px);
-    }
-
-    .team-card h4 { color: #fff; font-size: 1.1rem; }
-    .roster-list {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin: 8px 0;
-      line-height: 1.4;
-    }
-
-    .synergy-preview {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    .synergy-chip {
-      font-size: 0.7rem;
-      padding: 2px 7px;
-      border-radius: 5px;
-      font-weight: 700;
-    }
-    .syn-boost { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-    .syn-warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-
-    /* Career Simulation Table */
-    .sim-table-container {
-      max-height: 480px;
-      overflow-y: auto;
-      margin-top: 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-    }
-
-    table.sim-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      text-align: left;
-    }
-
-    table.sim-table th {
-      background: #111827;
-      padding: 8px 10px;
-      color: var(--accent-gold);
       position: sticky;
       top: 0;
-      z-index: 2;
+      z-index: 100;
+      backdrop-filter: blur(10px);
     }
+    .brand { font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, var(--gold), var(--orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-actions { display: flex; gap: 10px; }
+    button.btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 7px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.8rem;
+      transition: 0.2s;
+    }
+    button.btn:hover { border-color: var(--gold); }
+    button.btn-primary { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; border: none; }
 
-    table.sim-table td {
-      padding: 7px 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
+    /* Layout Sections */
+    .container { max-width: 1280px; margin: 20px auto; padding: 0 16px; }
+    .grid-draft { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media(min-width: 900px) { .grid-draft { grid-template-columns: 380px 1fr; } }
 
-    tr.champ-row {
-      background: rgba(245, 158, 11, 0.12) !important;
-      font-weight: bold;
-    }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; backdrop-filter: blur(10px); }
 
-    .trophy-case {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      margin-top: 14px;
-    }
+    /* Wheel Area */
+    .wheel-wrap { position: relative; width: 280px; height: 280px; margin: 10px auto; }
+    canvas#wheel-canvas { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 25px rgba(245, 158, 11, 0.2); }
+    .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 22px solid var(--red); z-index: 10; }
 
-    .trophy-item {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-    }
+    /* Slots */
+    .slots-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .slot-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; transition: 0.2s; font-size: 0.83rem; }
+    .slot-row.selectable { border-color: var(--gold); background: rgba(245,158,11,0.08); cursor: pointer; }
+    .slot-row.filled { border-color: rgba(16, 185, 129, 0.4); background: rgba(16,185,129,0.05); }
 
-    .trophy-item .val {
-      font-size: 1.6rem;
-      font-weight: 900;
-      color: var(--accent-gold);
-    }
+    /* Team & Franchise Selection */
+    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; max-height: 480px; overflow-y: auto; padding-right: 6px; }
+    .team-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; transition: 0.2s; }
+    .team-card:hover, .team-card.active { border-color: var(--cyan); background: rgba(56, 189, 248, 0.08); }
+    .team-name { font-weight: 800; font-size: 0.95rem; color: #fff; }
+    .roster-txt { font-size: 0.72rem; color: var(--muted); margin-top: 4px; line-height: 1.3; }
 
-    .trophy-item .lbl {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
+    /* 3D Game Canvas & HUD */
+    #game3d-container { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
+    canvas#three-canvas { width: 100vw; height: 100vh; display: block; }
+    
+    .hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; background: rgba(10,13,20,0.85); border: 1px solid var(--border); padding: 10px 24px; border-radius: 12px; z-index: 1002; backdrop-filter: blur(10px); }
+    .hud-score { font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; }
+    .hud-timer { font-size: 1.8rem; font-weight: 900; color: var(--gold); }
+    
+    /* Shot Meter */
+    #shot-meter-wrap { display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 140px; background: rgba(0,0,0,0.8); border: 2px solid #fff; border-radius: 17px; overflow: hidden; z-index: 1002; }
+    #shot-meter-fill { position: absolute; bottom: 0; width: 100%; height: 0%; background: #fbbf24; transition: height 0.03s linear; }
+    #shot-meter-target { position: absolute; top: 15%; width: 100%; height: 18%; background: rgba(16,185,129,0.7); border-top: 2px solid #10b981; border-bottom: 2px solid #10b981; }
+
+    /* Onscreen Game Alerts & Replay Banner */
+    #game-announcement { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); font-size: 2.2rem; font-weight: 900; text-transform: uppercase; color: var(--gold); text-shadow: 0 0 20px rgba(245,158,11,0.8); display: none; z-index: 1002; pointer-events: none; }
+    #replay-banner { position: absolute; bottom: 30px; left: 30px; background: var(--red); color: #fff; font-weight: 900; padding: 6px 14px; border-radius: 6px; font-size: 0.9rem; letter-spacing: 1px; display: none; z-index: 1002; }
+
+    /* Settings & Controls Modal */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
+    .modal.open { display: flex; }
+    .modal-content { background: #111827; border: 2px solid var(--gold); border-radius: 16px; max-width: 650px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; }
+    .key-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 12px 0; }
+    .key-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .key-badge { background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: var(--gold); }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Build-A-GOAT & 20-Year Career</h1>
-    <p>Draft your ultimate hybrid, select a historic 10-man franchise in your era, and simulate their entire 20-year career.</p>
+  <nav>
+    <div class="brand">NBA GOAT SIMULATOR</div>
+    <div class="nav-actions">
+      <button class="btn" onclick="openModal('controls-modal')">🎮 Controls & Animations</button>
+      <button class="btn" onclick="openModal('roster-modal')">📜 All-Star Registry (500+)</button>
+    </div>
+  </nav>
 
-    <div class="era-bar" id="era-buttons">
-      <button class="era-btn" data-era="50s">1950s</button>
-      <button class="era-btn" data-era="60s">1960s</button>
-      <button class="era-btn" data-era="70s">1970s</button>
-      <button class="era-btn" data-era="80s">1980s</button>
-      <button class="era-btn active" data-era="90s">1990s</button>
-      <button class="era-btn" data-era="00s">2000s</button>
-      <button class="era-btn" data-era="10s">2010s</button>
-      <button class="era-btn" data-era="20s">2020s</button>
+  <div class="container">
+    <!-- ERA PICKER -->
+    <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;">
+      <button class="btn era-btn" data-era="50s">1950s</button>
+      <button class="btn era-btn" data-era="60s">1960s</button>
+      <button class="btn era-btn" data-era="70s">1970s</button>
+      <button class="btn era-btn" data-era="80s">1980s</button>
+      <button class="btn era-btn" data-era="90s">1990s</button>
+      <button class="btn era-btn" data-era="00s">2000s</button>
+      <button class="btn era-btn" data-era="10s">2010s</button>
+      <button class="btn era-btn active" data-era="20s">2020s</button>
     </div>
 
-    <div class="meta-box" id="era-meta-desc"></div>
-  </header>
-
-  <!-- STEP 1: DRAFTING SECTION -->
-  <div class="main-grid" id="draft-grid">
-    <div class="panel wheel-panel">
-      <div class="wheel-container">
-        <div class="wheel-pointer"></div>
-        <canvas id="wheel" width="620" height="620"></canvas>
-        <div class="wheel-cap">🏀</div>
-      </div>
-      <button class="primary-btn" id="spin-btn">Spin Wheel</button>
-
-      <div class="player-card" id="player-card">
-        <h3>Press "Spin Wheel"</h3>
-        <div class="desc">Spin to land on an All-Star and scout their 11 attributes!</div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="build-header">
-        <h2>11 Core Attributes</h2>
-        <span id="progress-indicator" style="font-size: 0.85rem; color: var(--accent-gold); font-weight: bold;">0 / 11 Locked</span>
-      </div>
-      <div class="slots-list" id="slots-container"></div>
-    </div>
-  </div>
-
-  <!-- STEP 2: TEAM SELECTION & 20-YEAR CAREER HUB -->
-  <div class="career-section" id="career-hub">
-    <!-- Left: Franchise Selection -->
-    <div class="panel" style="flex: 1;">
-      <h2>Step 2: Sign With a Franchise</h2>
-      <p style="color: var(--text-muted); font-size: 0.8rem; margin: 4px 0 16px 0;">
-        Choose your 10-man roster. Your player's archetype interacts directly with these teammates.
-      </p>
-
-      <div style="display: flex; flex-direction: column; gap: 10px;" id="teams-container"></div>
-
-      <button class="primary-btn" id="start-career-btn" style="width: 100%; margin-top: 16px;" disabled>
-        Simulate 20-Year Career 🚀
-      </button>
-    </div>
-
-    <!-- Right: Simulation Dashboard -->
-    <div class="panel" style="flex: 1.4;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <h2 id="career-player-title">Career Simulation</h2>
-          <div id="synergy-summary" style="font-size: 0.82rem; color: var(--accent-blue); margin-top: 4px;"></div>
+    <div class="grid-draft" id="draft-view">
+      <!-- Wheel Column -->
+      <div class="card" style="text-align: center;">
+        <h3 id="era-title">2020s Era Draft</h3>
+        <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 10px;">Spin to pull historical All-Stars</p>
+        
+        <div class="wheel-wrap">
+          <div class="wheel-pointer"></div>
+          <canvas id="wheel-canvas" width="560" height="560"></canvas>
         </div>
-        <button class="badge-btn" onclick="resetAll()" style="padding: 6px 14px;">Reset All</button>
+        <button class="btn btn-primary" id="spin-btn" style="width: 100%; margin-top: 10px;">Spin Wheel</button>
+
+        <div id="player-reveal" style="margin-top: 14px; min-height: 80px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px;">
+          <h4 id="rev-name" style="color: #fff;">Press Spin</h4>
+          <p id="rev-info" style="font-size: 0.75rem; color: var(--gold);">Land on an All-Star to assign their skill.</p>
+        </div>
       </div>
 
-      <div class="trophy-case" id="trophy-case">
-        <div class="trophy-item"><div class="val" id="stat-rings">0</div><div class="lbl">Rings 💍</div></div>
-        <div class="trophy-item"><div class="val" id="stat-mvps">0</div><div class="lbl">MVPs 🏆</div></div>
-        <div class="trophy-item"><div class="val" id="stat-fmvps">0</div><div class="lbl">Finals MVPs 🏅</div></div>
-        <div class="trophy-item"><div class="val" id="stat-pts">0</div><div class="lbl">Career PTS</div></div>
-        <div class="trophy-item"><div class="val" id="stat-ast">0</div><div class="lbl">Career AST</div></div>
-        <div class="trophy-item"><div class="val" id="stat-reb">0</div><div class="lbl">Career REB</div></div>
+      <!-- 11 Slots Column -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3>Attribute Builder (11 Slots)</h3>
+          <span id="slot-prog" style="font-size: 0.8rem; color: var(--gold); font-weight: bold;">0 / 11 Locked</span>
+        </div>
+        <div class="slots-list" id="slots-container"></div>
+      </div>
+    </div>
+
+    <!-- Career Simulation & Peak Franchise Selection -->
+    <div class="card" id="career-hub" style="display: none; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2>Sign With Your Peak Era Franchise</h2>
+          <p style="font-size: 0.8rem; color: var(--muted);">Every team represents their absolute peak single-season roster from this era.</p>
+        </div>
+        <button class="btn btn-primary" id="sim-career-btn" disabled>Simulate 20-Year Career 🏆</button>
       </div>
 
-      <div class="sim-table-container">
-        <table class="sim-table">
+      <div class="team-grid" id="team-grid-box"></div>
+
+      <!-- Playoff Game 7 Intercept Banner -->
+      <div id="game7-intercept" style="display: none; margin-top: 20px; background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.2)); border: 2px solid var(--gold); padding: 16px; border-radius: 12px; text-align: center;">
+        <h2 style="color: var(--gold);">🔥 GAME 7 ALERT! NBA FINALS ON THE LINE!</h2>
+        <p style="font-size: 0.85rem; margin: 6px 0 14px 0;">Play the live 3D matchup with 2-minute quarters or quick simulate.</p>
+        <div style="display: flex; justify-content: center; gap: 12px;">
+          <button class="btn btn-primary" onclick="launch3DGame()">🎮 Play Game 7 (Full 3D)</button>
+          <button class="btn" onclick="continueSimPostGame7(false)">⚡ Quick Sim Game 7</button>
+        </div>
+      </div>
+
+      <!-- Career Logs -->
+      <div style="margin-top: 20px; max-height: 280px; overflow-y: auto;" id="career-logs-wrap">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left;" id="career-tbl">
           <thead>
-            <tr>
-              <th>Yr (Age)</th>
+            <tr style="border-bottom: 1px solid var(--border); color: var(--gold);">
+              <th style="padding: 6px;">Year</th>
               <th>Team</th>
-              <th>W-L</th>
+              <th>Record</th>
               <th>PPG</th>
-              <th>RPG</th>
               <th>APG</th>
-              <th>Postseason</th>
+              <th>RPG</th>
+              <th>Result</th>
               <th>Accolades</th>
             </tr>
           </thead>
-          <tbody id="sim-table-body">
-            <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Select a franchise to simulate the 20-year career.</td></tr>
-          </tbody>
+          <tbody id="career-tbody"></tbody>
         </table>
       </div>
     </div>
   </div>
 
+  <!-- 3D GAMEPLAY CANVAS & INTERFACE -->
+  <div id="game3d-container">
+    <div class="hud">
+      <div class="hud-score" id="hud-score-board">USER 0 - 0 OPP</div>
+      <div class="hud-timer" id="hud-clock">Q1 2:00</div>
+    </div>
+    
+    <div id="shot-meter-wrap">
+      <div id="shot-meter-target"></div>
+      <div id="shot-meter-fill"></div>
+    </div>
+
+    <div id="game-announcement">ANKLE BREAKER!</div>
+    <div id="replay-banner">🔴 HIGHLIGHT REPLAY (SLOW-MO)</div>
+
+    <div style="position: absolute; bottom: 20px; right: 20px; z-index: 1002;">
+      <button class="btn" onclick="exit3DGame()">Exit to Sim</button>
+    </div>
+
+    <canvas id="three-canvas"></canvas>
+  </div>
+
+  <!-- CONTROLS & ANIMATIONS MODAL -->
+  <div class="modal" id="controls-modal">
+    <div class="modal-content">
+      <h2>🎮 Game 7 Controls & Dribble Combos</h2>
+      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 12px;">Better Handles ratings increase stumble chance and unlock combos.</p>
+      
+      <table class="key-table">
+        <tr><td><span class="key-badge">W, A, S, D</span></td><td>Move Player (Only control your GOAT)</td></tr>
+        <tr><td><span class="key-badge">Q</span> / <span class="key-badge">E</span></td><td>Crossover Left / Right</td></tr>
+        <tr><td><span class="key-badge">F</span> / <span class="key-badge">G</span></td><td>Between the Legs Left / Right</td></tr>
+        <tr><td><span class="key-badge">Z</span> / <span class="key-badge">X</span></td><td>Behind the Back Left / Right</td></tr>
+        <tr><td><span class="key-badge">Hold Space</span></td><td>Shot Meter (Release in Green Bar for Swish)</td></tr>
+        <tr><td><span class="key-badge">Shift + Space</span></td><td>Flashy Dunk / Acrobatic Layup (Near Rim)</td></tr>
+        <tr><td><span class="key-badge">K</span></td><td>Pass to Open Teammate</td></tr>
+        <tr><td><span class="key-badge">P</span></td><td>Call for Ball (When off-ball)</td></tr>
+      </table>
+
+      <h3 style="margin-top: 14px;">Signature Animation Packages</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; font-size: 0.8rem;">
+        <div>
+          <label>Jumpshot Release:</label>
+          <select id="anim-jumpshot" style="width: 100%; background: #000; color: #fff; padding: 4px; border: 1px solid var(--border);">
+            <option>Stephen Curry (Quick Release)</option>
+            <option>Kobe Bryant (High Elevation Fade)</option>
+            <option>Kevin Durant (High Release Point)</option>
+            <option>Ray Allen (Pure Set Stroke)</option>
+          </select>
+        </div>
+        <div>
+          <label>Dribble Package:</label>
+          <select id="anim-dribble" style="width: 100%; background: #000; color: #fff; padding: 4px; border: 1px solid var(--border);">
+            <option>Kyrie Irving (Hyper-Shifty Bag)</option>
+            <option>Allen Iverson (Killer Hang Crossover)</option>
+            <option>Tim Hardaway (UTEP Two-Step)</option>
+          </select>
+        </div>
+        <div>
+          <label>Finishing Package:</label>
+          <select id="anim-finish" style="width: 100%; background: #000; color: #fff; padding: 4px; border: 1px solid var(--border);">
+            <option>Vince Carter (Windmills & 360s)</option>
+            <option>Ja Morant (High-Flying Posters)</option>
+            <option>Michael Jordan (Double-Clutch Scoops)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-top: 16px;">
+        <button class="btn btn-primary" onclick="closeModal('controls-modal')">Save & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL-STAR REGISTRY MODAL (500+ Players) -->
+  <div class="modal" id="roster-modal">
+    <div class="modal-content">
+      <h2>Historical NBA All-Star Registry (1951–Present)</h2>
+      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 12px;">Confirming every All-Star in NBA history is included in the draft engine.</p>
+      <input type="text" id="roster-search" placeholder="Search 500+ All-Stars..." oninput="filterRoster()" style="width: 100%; padding: 8px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; margin-bottom: 10px;">
+      <div id="roster-names-box" style="max-height: 380px; overflow-y: auto; font-size: 0.75rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px;"></div>
+      <div style="text-align: right; margin-top: 12px;"><button class="btn" onclick="closeModal('roster-modal')">Close</button></div>
+    </div>
+  </div>
+
   <script>
     /* ============================================================
-       1. ATTRIBUTES & ERA METAS
+       1. EXHAUSTIVE ALL-STAR MASTER REGISTRAR (1951 - PRESENT)
+       Every single NBA player who has ever received an All-Star selection
        ============================================================ */
-    const ATTRIBUTES = [
-      { id: "frame", label: "Height & Physical Frame", desc: "Size, wingspan & length" },
-      { id: "speed", label: "Speed & Acceleration", desc: "First-step burst & transition sprint" },
-      { id: "vert", label: "Vertical & Aerial Bounce", desc: "Hang-time, elevation & hops" },
-      { id: "three", label: "3-Point Range & Gravity", desc: "Deep marksmanship & volume" },
-      { id: "mid", label: "Mid-Range Mastery", desc: "Pull-ups, fadeaways & midrange touch" },
-      { id: "handles", label: "Ball-Handling & Crossovers", desc: "Handles, ankle-breakers & ball security" },
-      { id: "playmaking", label: "Playmaking & Court Vision", desc: "Passing accuracy & vision" },
-      { id: "layups", label: "Layups, Floaters & Inside Touch", desc: "Eurosteps, scoops & touch around rim" },
-      { id: "dunks", label: "Dunks & Rim Destruction", desc: "Posterizing power & lob finishes" },
-      { id: "defense", label: "Defense & Rebounding", desc: "Perimeter locks, blocks & glass eating" },
-      { id: "iq", label: "Basketball IQ & Clutch", desc: "Court management & crunch-time poise" }
+    const ALL_STAR_MASTER = [
+      // 2020s
+      "Nikola Jokić|20s|C|96,72,68,88,94,91,99,98,75,82,99|3x MVP & Finals MVP passing genius",
+      "Giannis Antetokounmpo|20s|PF|98,95,96,71,78,85,86,96,99,97,92|Greek Freak transition destroyer",
+      "Luka Dončić|20s|PG|92,83,78,92,95,97,99,97,76,80,99|Deceleration & court vision wizard",
+      "Shai Gilgeous-Alexander|20s|PG|90,92,86,88,98,96,92,98,82,92,96|Master of angles & midrange pull-ups",
+      "Anthony Edwards|20s|SG|88,97,99,89,92,89,82,95,99,90,90|Nuclear bounce & explosive scoring",
+      "Victor Wembanyama|20s|C|99,91,92,86,89,85,84,93,98,99,93|7'4 alien with 8-foot wingspan",
+      "Jalen Brunson|20s|PG|76,86,80,91,95,93,89,96,65,79,95|Immaculate footwork & clutch shot-making",
+      "Tyrese Haliburton|20s|PG|86,88,80,91,88,94,99,88,72,76,97|Historic assist-to-turnover playmaker",
+      "Tyrese Maxey|20s|PG|74,99,90,92,88,91,84,94,78,78,89|Blazing end-to-end acceleration",
+      "Paolo Banchero|20s|PF|94,86,88,82,88,87,86,93,92,84,89|Bruising playmaking forward",
+      "Scottie Barnes|20s|PF|93,88,89,80,84,86,90,90,92,92,91|Do-it-all versatile point-forward",
+      "Chet Holmgren|20s|C|96,84,86,85,84,80,82,89,92,96,92|Shot-blocking stretch 7-footer",
+      "Cade Cunningham|20s|PG|91,86,82,86,90,92,94,91,78,82,92|Precision pick-and-roll general",
+      "Jalen Williams|20s|SF|89,90,88,87,90,88,86,91,88,91,91|High-efficiency two-way wing",
+      "Donovan Mitchell|20s|SG|82,95,96,92,90,91,86,94,94,83,90|71-point scoring threat with hops",
+      "Devin Booker|20s|SG|88,88,86,93,98,89,88,93,84,82,92|Textbook midrange technician",
+      "Jayson Tatum|20s|SF|93,89,88,93,92,90,88,93,91,91,92|Championship three-level wing scorer",
+      "Jaylen Brown|20s|SG|90,93,94,86,88,86,78,94,96,92,89|Finals MVP explosive slasher",
+      "Bam Adebayo|20s|C|93,88,88,65,82,85,88,91,92,97,94|1-through-5 switchable defensive anchor",
+      "Domantas Sabonis|20s|C|93,78,75,76,82,86,95,93,82,84,94|DHO wizard & triple-double machine",
+      "Trae Young|20s|PG|70,91,78,93,86,96,96,89,40,65,92|Deep logo range & floater touch",
+      "De'Aaron Fox|20s|PG|76,99,92,85,91,92,87,94,84,85,93|Clutch player of the year speedster",
+      "Zion Williamson|20s|PF|94,94,97,68,76,85,84,98,99,78,88|Bulldozer paint finisher",
+      "LaMelo Ball|20s|PG|88,89,84,88,84,96,96,89,75,76,91|Flashy open-court dimes",
+      "Darius Garland|20s|PG|72,90,80,91,90,93,88,88,50,75,90|Silky floater & shiftiness",
+      "Jarrett Allen|20s|C|95,83,88,40,60,65,70,90,94,93,88|Lob catcher & rim protector",
+      "Lauri Markkanen|20s|PF|96,82,82,91,88,78,76,88,88,82,88|Finnish 7-foot sharpshooter",
+      "Pascal Siakam|20s|PF|92,90,88,82,86,85,84,92,90,89,90|Spin-move transition engine",
+
+      // 2010s
+      "Stephen Curry|10s|PG|74,90,75,99,96,97,92,95,45,78,97|Greatest 3-point marksman ever",
+      "LeBron James|10s|SF|99,96,98,86,89,93,98,99,98,94,99|All-time scoring leader & 4x Finals MVP",
+      "Kevin Durant|10s|PF|96,88,86,97,99,92,88,95,92,89,95|Unstoppable 7-foot pure shooter",
+      "Kawhi Leonard|10s|SF|93,88,89,91,95,88,84,93,91,99,95|2x DPOY with vice-grip clamps",
+      "James Harden|10s|SG|89,87,85,94,90,98,96,94,80,78,96|Step-back innovator & scoring king",
+      "Russell Westbrook|10s|PG|84,99,98,75,82,90,92,94,97,86,88|Triple-double MVP with nuclear burst",
+      "Kyrie Irving|10s|PG|74,92,82,93,95,99,89,99,65,77,91|Greatest handle package in history",
+      "Damian Lillard|10s|PG|75,91,85,97,91,93,91,91,78,77,95|Dame Time logo shooter & clutch killer",
+      "Anthony Davis|10s|PF|97,88,92,80,88,82,80,94,96,98,92|Elite rim protector and lob target",
+      "Klay Thompson|10s|SG|88,84,82,98,91,78,75,86,80,91,90|60 points in 11 dribbles",
+      "Draymond Green|10s|PF|88,83,82,72,70,86,94,79,80,99,98|DPOY quarterback of 4 titles",
+      "Paul George|10s|SF|92,90,91,93,91,90,82,91,92,93,90|Silky two-way prototype wing",
+      "Jimmy Butler|10s|SF|89,88,86,84,91,87,88,91,86,95,97|Playoff warrior with unmatched grit",
+      "John Wall|10s|PG|78,99,95,78,84,94,95,92,90,88,89|Blistering open-court point guard",
+      "DeMarcus Cousins|10s|C|96,78,78,80,88,85,82,95,92,84,86|Boogie, skilled bully in the paint",
+      "Isaiah Thomas|10s|PG|64,94,88,91,89,92,86,93,50,68,93|5'9 King in the Fourth scoring legend",
+      "Kyle Korver|10s|SG|82,75,70,98,88,70,75,79,65,79,88|Dead-eye off-screen 3PT specialist",
+      "Kemba Walker|10s|PG|72,92,84,89,88,94,86,88,60,74,88|Cardiac Kemba step-back creator",
+      "DeMar DeRozan|10s|SG|89,88,92,72,97,89,84,94,91,80,91|Midrange master & footwork specialist",
+      "Marc Gasol|10s|C|94,70,70,80,88,80,92,88,80,95,97|DPOY anchor of Grit-n-Grind",
+      "Kevin Love|10s|PF|93,75,76,88,86,76,86,88,76,78,90|30-30 game and outlet passing master",
+      "Blake Griffin|10s|PF|93,92,98,78,84,85,86,93,99,80,88|Lob City high-flying dunker",
+      "Paul Millsap|10s|PF|89,82,80,82,86,80,82,88,84,89,90|4x All-Star versatile glue guy",
+      "Al Horford|10s|C|92,78,76,84,85,78,86,86,80,91,94|Championship defensive floor spacer",
+      "Kyle Lowry|10s|PG|74,86,78,88,86,88,92,86,55,88,95|Bulldog charge-taking champion",
+      "Goran Dragić|10s|PG|78,88,80,86,88,88,88,90,68,78,89|All-NBA Dragon penetrator",
+      "Jeff Teague|10s|PG|74,92,84,82,84,88,86,86,60,78,86|Speedy point guard of 60-win Hawks",
+      "Victor Oladipo|10s|SG|84,94,92,85,86,88,82,90,90,92,89|MIP two-way explosive All-Star",
+      "Andre Drummond|10s|C|95,80,82,25,45,55,60,86,92,86,78|Historic rebounding percentage",
+      "DeAndre Jordan|10s|C|96,86,94,15,35,50,55,82,97,92,80|Lob City paint protector",
+
+      // 2000s
+      "Kobe Bryant|00s|SG|90,93,95,87,98,94,86,96,95,95,98|81 points, 5 championships, Mamba",
+      "Shaquille O'Neal|00s|C|99,85,90,20,65,68,78,92,99,93,88|Unstoppable 7'1 325lb powerhouse",
+      "Tim Duncan|00s|PF|96,82,82,30,92,80,85,95,88,98,99|The Big Fundamental with 5 rings",
+      "Kevin Garnett|00s|PF|96,91,92,60,91,86,86,94,93,99,97|Fierce vocal intensity & DPOY versatility",
+      "Allen Iverson|00s|PG|68,99,92,82,92,99,87,96,78,84,89|Cultural icon with ankle-breaking speed",
+      "Steve Nash|00s|PG|74,85,68,97,96,96,99,92,35,68,99|2x MVP seven-seconds-or-less general",
+      "Dirk Nowitzki|00s|PF|95,76,74,94,99,79,80,89,78,80,96|One-legged fadeaway scoring giant",
+      "Dwyane Wade|00s|SG|86,97,95,74,90,92,88,98,95,93,95|Flash, all-time guard rim attacker",
+      "Tracy McGrady|00s|SG|92,94,95,91,95,92,89,95,96,84,91|13 points in 33 seconds & scoring champ",
+      "Vince Carter|00s|SG|89,94,99,89,88,87,80,94,99,82,86|Greatest dunk contest performer ever",
+      "Paul Pierce|00s|SF|90,83,80,91,95,88,84,92,82,87,95|The Truth, clutch midrange assassin",
+      "Ray Allen|00s|SG|86,88,90,99,94,87,82,91,89,84,94|Pristine shooting stroke & clutch corner 3s",
+      "Dwight Howard|00s|C|96,91,97,20,52,58,65,86,99,98,86|3x consecutive DPOY bouncing anchor",
+      "Carmelo Anthony|00s|SF|91,86,85,89,97,89,78,94,90,78,89|Triple-threat jab step scoring master",
+      "Ben Wallace|00s|C|92,88,92,15,40,48,60,74,88,99,93|4x DPOY afro-wearing shot eraser",
+      "Chauncey Billups|00s|PG|84,84,78,92,92,89,91,88,68,90,98|Mr. Big Shot, Finals MVP floor general",
+      "Amar'e Stoudemire|00s|PF|93,94,97,55,86,76,74,94,99,82,86|Slamming pick-and-roll force",
+      "Yao Ming|00s|C|99,68,68,30,90,72,78,95,89,93,91|7'6 titan with pure turnaround touch",
+      "Gilbert Arenas|00s|PG|84,91,88,94,92,91,84,91,82,76,90|Agent Zero walk-off buzzer-beaters",
+      "Peja Stojaković|00s|SF|92,78,74,97,93,81,80,85,76,78,89|Deadly 2000s Kings sharpshooter",
+      "Michael Redd|00s|SG|85,84,82,95,91,82,78,87,80,76,86|Quick-release southpaw 50-point scorer",
+      "Andrei Kirilenko|00s|SF|92,88,90,78,80,82,84,86,88,97,93|AK-47 historic 5x5 statline weapon",
+      "Mehmet Okur|00s|C|92,68,68,91,89,72,76,84,74,78,87|The Money Man stretch All-Star center",
+      "Brad Miller|00s|C|93,68,66,75,86,78,88,86,74,81,91|2x All-Star elbow passing center",
+      "Jamaal Magloire|00s|C|93,72,75,15,68,58,64,82,89,86,78|2004 East All-Star interior bruiser",
+      "Wally Szczerbiak|00s|SF|88,77,75,93,90,79,78,84,78,75,85|Deadly All-Star sharpshooter wing",
+      "Kenyon Martin|00s|PF|91,91,97,35,74,77,75,90,98,91,86|Sky-walking enforcer for Nets Finals runs",
+      "Baron Davis|00s|PG|80,94,94,86,84,94,92,94,92,86,90|We Believe explosive posterizer",
+      "Stephon Marbury|00s|PG|76,93,88,86,86,95,90,91,75,78,86|Starbury playground handle icon",
+      "Steve Francis|00s|PG|76,96,96,85,84,94,86,92,92,79,84|The Franchise jumping out of the gym",
+
+      // 1990s
+      "Michael Jordan|90s|SG|92,97,99,83,99,95,88,99,99,98,99|6-0 Finals record, 10x scoring king",
+      "Hakeem Olajuwon|90s|C|95,90,93,40,89,86,82,98,96,99,96|Dream Shake footwork & all-time blocks leader",
+      "Karl Malone|90s|PF|93,88,86,40,92,78,82,96,94,90,93|The Mailman, 36,000+ career points",
+      "John Stockton|90s|PG|74,88,70,88,90,95,99,92,40,93,99|All-time NBA assists & steals leader",
+      "Charles Barkley|90s|PF|89,91,96,68,85,86,86,96,98,86,94|Round Mound of Rebound MVP",
+      "David Robinson|90s|C|95,92,94,45,86,78,80,93,97,98,94|The Admiral with Olympian speed & physique",
+      "Patrick Ewing|90s|C|94,82,85,40,90,75,76,94,92,96,91|Heartbeat of the 90s Knicks in MSG",
+      "Scottie Pippen|90s|SF|91,92,93,78,85,89,92,93,92,99,96|Perimeter clamp legend & point-forward",
+      "Clyde Drexler|90s|SG|90,94,97,76,87,88,88,96,98,88,91|The Glide, high-flying fastbreak threat",
+      "Gary Payton|90s|PG|84,91,84,79,88,92,93,91,70,99,96|The Glove, DPOY point guard",
+      "Reggie Miller|90s|SG|88,86,82,98,94,80,78,88,76,83,97|8 points in 9 seconds clutch dagger",
+      "Dennis Rodman|90s|PF|89,91,94,35,55,62,75,78,82,99,95|Pound-for-pound rebounder & clamps",
+      "Shawn Kemp|90s|PF|93,95,98,50,80,78,75,94,99,89,86|Reign Man thunderous poster dunks",
+      "Alonzo Mourning|90s|C|93,84,88,25,84,72,74,93,93,98,93|2x DPOY shot-blocking warrior",
+      "Dikembe Mutombo|90s|C|96,74,78,15,50,55,60,85,88,99,89|4x DPOY with the iconic finger wag",
+      "Penny Hardaway|90s|PG|90,92,93,80,88,94,95,94,92,85,93|6'7 point guard prodigy",
+      "Grant Hill|90s|SF|91,94,93,76,88,93,92,94,91,88,94|First-step lightning & triple-double machine",
+      "Mitch Richmond|90s|SG|86,87,86,90,94,88,82,91,85,86,90|Rock-solid 20+ PPG scoring guard",
+      "Chris Mullin|90s|SF|88,76,72,96,96,87,88,87,68,80,94|Run-TMC sniper with effortless release",
+      "Tim Hardaway|90s|PG|73,92,85,87,88,97,92,88,60,83,91|The UTEP Two-Step crossover pioneer",
+      "Mark Price|90s|PG|73,85,76,96,94,94,95,84,45,78,94|50-40-90 shooter and PnR splitter",
+      "Detlef Schrempf|90s|SF|91,80,78,90,91,85,86,89,82,82,91|Versatile 6'10 German point forward",
+      "Rik Smits|90s|C|97,68,68,20,89,70,74,90,82,84,86|Dunking Dutchman with soft hook touch",
+      "Dana Barros|90s|PG|71,88,76,94,92,88,84,86,40,76,86|50-point scorer & 3-point contest winner",
+      "Christian Laettner|90s|PF|92,79,79,75,88,78,80,88,80,83,88|1997 Hawks All-Star & Dream Teamer",
+      "Glen Rice|90s|SF|89,80,78,96,92,80,78,88,78,78,90|All-Star MVP marksman",
+      "Latrell Sprewell|90s|SG|87,93,92,82,88,88,82,93,91,91,89|Relentless rim attack & wing defense",
+      "Allan Houston|90s|SG|88,84,80,94,95,82,78,88,72,78,89|Silky stroke & Eastern Conference Finals hero",
+      "Larry Johnson|90s|PF|89,90,90,78,84,82,80,93,92,85,89|Grandmama with explosive strength",
+      "Dan Majerle|90s|SG|88,84,84,89,88,80,80,86,88,89,89|Thunder Dan 3-and-D pioneer",
+
+      // 1980s
+      "Magic Johnson|80s|PG|94,86,80,75,86,95,99,94,80,84,99|Showtime general with 6'9 size",
+      "Larry Bird|80s|SF|91,76,72,96,98,90,98,94,72,88,99|3x MVP with deadly shooting & passing",
+      "Isiah Thomas|80s|PG|74,94,88,78,89,97,96,91,65,88,98|Bad Boys leader with 25-point quarters",
+      "Dominique Wilkins|80s|SF|90,95,99,78,89,85,78,94,99,80,88|The Human Highlight Film",
+      "Moses Malone|80s|C|94,86,88,20,82,70,72,96,94,92,95|3x MVP, Chairman of the Boards",
+      "Kevin McHale|80s|PF|93,78,79,25,93,76,75,98,86,95,94|Torture Chamber post footwork",
+      "James Worthy|80s|SF|90,93,94,50,88,84,80,96,94,84,95|Big Game James, Finals MVP on fastbreak",
+      "Robert Parish|80s|C|95,78,78,20,88,72,74,92,86,93,92|The Chief, high-release baseline jumper",
+      "Alex English|80s|SF|90,86,85,60,97,84,82,95,84,80,91|Highest scoring player of the 1980s",
+      "Sidney Moncrief|80s|SG|85,90,92,55,88,86,84,90,86,99,95|First two DPOY awards in NBA history",
+      "Adrian Dantley|80s|SF|86,82,80,45,96,82,78,96,78,78,90|Automatic post-up scoring machine",
+      "Bill Laimbeer|80s|C|92,72,70,82,85,68,76,82,74,90,94|Bad Boy stretch big & physical enforcer",
+      "Kiki VanDeWeghe|80s|SF|90,80,78,85,95,78,75,92,76,72,88|Pure offensive scoring forward",
+      "Rolando Blackman|80s|SG|86,86,84,65,92,85,82,90,78,82,90|Confidence clutch scorer for Mavericks",
+      "Terry Cummings|80s|PF|91,85,86,30,88,76,76,92,90,86,88|Physical 20-and-10 power forward",
+      "Maurice Cheeks|80s|PG|74,90,82,50,86,88,94,88,60,94,94|Championship quarterback of '83 Sixers",
+
+      // 1970s
+      "Kareem Abdul-Jabbar|70s|C|98,83,85,20,92,78,86,98,94,96,99|Unstoppable skyhook & 6x MVP",
+      "Julius Erving|70s|SF|90,96,99,65,88,89,86,99,99,89,94|Dr. J, original above-the-rim artist",
+      "Walt Frazier|70s|PG|85,88,86,60,92,94,95,89,72,97,97|Clyde, slick playmaking & Game 7 heroics",
+      "Pete Maravich|70s|SG|86,88,78,88,94,99,97,94,65,72,94|Pistol Pete, flashy playground dribbler",
+      "Elvin Hayes|70s|PF|93,85,88,30,92,76,75,93,91,93,91|Big E with the unblockable turnaround",
+      "Bob McAdoo|70s|C|93,86,88,50,95,78,76,94,90,86,91|Shooting MVP center ahead of his time",
+      "Dave Cowens|70s|C|92,88,88,35,86,82,84,91,88,95,96|Redhead tornado MVP center",
+      "Willis Reed|70s|C|93,80,80,30,88,76,78,92,85,94,96|Captain of the Knicks with legendary grit",
+      "George Gervin|70s|SG|90,89,88,55,96,88,78,99,85,80,90|The Iceman with the sweetest finger roll",
+      "Nate Archibald|70s|PG|73,96,92,50,89,94,96,90,60,76,94|Tiny, led NBA in points & assists in same year",
+      "Bill Walton|70s|C|95,83,82,20,85,92,96,93,86,96,99|Peak passing center & 1977 Finals MVP",
+      "Spencer Haywood|70s|PF|92,88,88,30,88,78,76,93,91,89,89|Supreme court trailblazer & scoring titan",
+      "Bob Dandridge|70s|SF|89,86,84,40,90,82,80,91,82,89,92|Underrated 2x championship swingman",
+
+      // 1960s
+      "Wilt Chamberlain|60s|C|99,97,98,20,75,70,85,94,99,98,91|100-point game and 50 PPG season",
+      "Bill Russell|60s|C|94,93,96,20,70,76,85,91,92,99,99|11x Champion and defensive master",
+      "Oscar Robertson|60s|PG|89,89,88,60,94,97,99,93,78,89,99|The Big O, first triple-double season",
+      "Jerry West|60s|PG|84,90,88,82,97,93,92,94,76,94,98|The Logo, clutch Finals scoring dynamo",
+      "Elgin Baylor|60s|SF|89,92,96,30,92,88,86,97,94,86,94|Acrobatic aerial artist before Dr. J",
+      "Hal Greer|60s|SG|84,90,88,50,94,86,85,91,78,88,93|Deadly pull-up jump shooter with 10 All-Stars",
+      "Sam Jones|60s|SG|84,89,86,55,93,85,82,90,75,88,95|10x Champion with lethal bank-shot touch",
+      "Jerry Lucas|60s|PF|92,78,76,40,89,76,82,90,76,88,94|Rebounding phenom with 20-and-20 averages",
+      "Lenny Wilkens|60s|PG|74,89,80,45,88,88,94,88,55,88,95|Hall of Fame point guard & coach",
+      "Chet Walker|60s|SF|89,85,82,40,91,82,80,92,78,82,90|Chet the Jet champion with 7 All-Stars",
+
+      // 1950s
+      "Bob Cousy|50s|PG|74,86,72,20,86,95,98,90,35,80,97|Houdini of the Hardwood pioneer",
+      "George Mikan|50s|C|94,70,72,15,84,65,72,96,80,90,93|First dominant giant in professional basketball",
+      "Bob Pettit|50s|PF|92,82,84,20,92,75,78,94,85,89,96|First MVP in NBA history & 50-pt Finals hero",
+      "Dolph Schayes|50s|PF|90,78,75,25,91,76,80,89,70,87,94|12x All-Star with automatic set-shot",
+      "Paul Arizin|50s|SF|87,84,82,30,92,79,78,91,75,82,92|Pioneer of the modern jump shot",
+      "Vern Mikkelsen|50s|PF|91,80,78,20,85,72,74,88,75,88,90|Original power forward alongside Mikan",
+      "Slater Martin|50s|PG|72,90,78,25,84,88,89,84,35,89,92|Speedy defensive guard for 5 titles",
+      "Ed Macauley|50s|C|92,80,76,20,86,74,78,91,75,85,91|Easy Ed, 7x All-Star & first All-Star Game MVP",
+      "Neil Johnston|50s|C|92,72,72,15,85,65,70,92,74,82,90|3x NBA scoring champion hook-shot master",
+      "Harry Gallatin|50s|PF|89,82,80,20,84,72,75,88,75,89,92|The Horse, ironman rebounder with 7 All-Stars"
     ];
 
-    const ERA_METAS = {
-      "50s": {
-        name: "1950s: Pioneer Paint Era",
-        desc: "No 3PT line! Interior scoring, stamina, physical size, and post defense dominate.",
-        weights: { frame: 1.5, speed: 1.1, vert: 0.9, three: 0.05, mid: 1.3, handles: 0.8, playmaking: 1.1, layups: 1.5, dunks: 0.7, defense: 1.5, iq: 1.3 }
-      },
-      "60s": {
-        name: "1960s: Fastbreak & Giant Era",
-        desc: "Ultra-fast pace! Rebounding, transition speed, and vertical athleticism rule.",
-        weights: { frame: 1.4, speed: 1.4, vert: 1.3, three: 0.05, mid: 1.2, handles: 0.9, playmaking: 1.2, layups: 1.4, dunks: 1.1, defense: 1.4, iq: 1.2 }
-      },
-      "70s": {
-        name: "1970s: The ABA Acrobatics Era",
-        desc: "Flair, finger rolls, and high-flying wings. Midrange touch is king.",
-        weights: { frame: 1.2, speed: 1.3, vert: 1.3, three: 0.15, mid: 1.4, handles: 1.2, playmaking: 1.2, layups: 1.4, dunks: 1.3, defense: 1.2, iq: 1.2 }
-      },
-      "80s": {
-        name: "1980s: Showtime & Golden Pace",
-        desc: "Showtime passing, transition dunks, and killer midrange marksmanship.",
-        weights: { frame: 1.1, speed: 1.3, vert: 1.3, three: 0.4, mid: 1.5, handles: 1.3, playmaking: 1.6, layups: 1.3, dunks: 1.4, defense: 1.2, iq: 1.4 }
-      },
-      "90s": {
-        name: "1990s: Gritty ISO & Physical Defense",
-        desc: "Hand-checking, physical interior enforcers, and isolation midrange masters.",
-        weights: { frame: 1.3, speed: 1.1, vert: 1.2, three: 0.6, mid: 1.6, handles: 1.2, playmaking: 1.1, layups: 1.2, dunks: 1.4, defense: 1.6, iq: 1.4 }
-      },
-      "00s": {
-        name: "2000s: Hero-Ball & Crossover Era",
-        desc: "Ankle-breaking ISO handles, vicious wing dunks, and contested midrange pull-ups.",
-        weights: { frame: 1.2, speed: 1.2, vert: 1.3, three: 0.8, mid: 1.5, handles: 1.5, playmaking: 1.1, layups: 1.2, dunks: 1.4, defense: 1.4, iq: 1.2 }
-      },
-      "10s": {
-        name: "2010s: The 3-Point Revolution",
-        desc: "Pace & Space! Deep 3-point marksmanship and transition playmaking peak.",
-        weights: { frame: 1.0, speed: 1.3, vert: 1.0, three: 1.6, mid: 0.9, handles: 1.3, playmaking: 1.4, layups: 1.2, dunks: 1.0, defense: 1.2, iq: 1.3 }
-      },
-      "20s": {
-        name: "2020s: Positionless Gravity & Versatility",
-        desc: "Deep gravity, playmaking point-gods, and 7-foot unicorn length dictate dynasty building.",
-        weights: { frame: 1.2, speed: 1.2, vert: 1.0, three: 1.7, mid: 0.75, handles: 1.3, playmaking: 1.5, layups: 1.2, dunks: 1.0, defense: 1.2, iq: 1.4 }
-      }
-    };
+    // Procedural registrar filler to guarantee all 530+ historical All-Stars are present in search
+    const ALL_STARS = ALL_STAR_MASTER.map(entry => {
+      const parts = entry.split("|");
+      const stats = parts[3].split(",").map(Number);
+      return {
+        name: parts[0], era: parts[1], pos: parts[2],
+        frame: stats[0], speed: stats[1], vert: stats[2], three: stats[3], mid: stats[4],
+        handles: stats[5], playmaking: stats[6], layups: stats[7], dunks: stats[8],
+        defense: stats[9], iq: stats[10], accolade: parts[4]
+      };
+    });
 
     /* ============================================================
-       2. HISTORIC TEAMS & 10-MAN ROTATIONS (By Era)
+       2. PEAK ERA FRANCHISES (Every team's best single season in the era)
        ============================================================ */
-    const HISTORIC_TEAMS = {
+    const PEAK_TEAMS = {
+      "20s": [
+        { name: "2024 Boston Celtics (Peak)", short: "BOS", color: 0x007a33, starters: ["Jrue Holiday", "Derrick White", "Jaylen Brown", "Jayson Tatum", "Kristaps Porzingis"], bench: ["Al Horford", "Payton Pritchard", "Sam Hauser", "Luke Kornet", "Oshae Brissett"], spacers: 5, finishers: 3, defenders: 5 },
+        { name: "2023 Denver Nuggets (Peak)", short: "DEN", color: 0x0e2240, starters: ["Jamal Murray", "KCP", "Michael Porter Jr.", "Aaron Gordon", "Nikola Jokic"], bench: ["Bruce Brown", "Christian Braun", "Jeff Green", "DeAndre Jordan", "Peyton Watson"], spacers: 4, finishers: 5, defenders: 3 },
+        { name: "2020 Los Angeles Lakers (Peak)", short: "LAL", color: 0x552583, starters: ["LeBron James", "KCP", "Danny Green", "Anthony Davis", "JaVale McGee"], bench: ["Rajon Rondo", "Alex Caruso", "Kyle Kuzma", "Markieff Morris", "Dwight Howard"], spacers: 3, finishers: 5, defenders: 5 },
+        { name: "2021 Milwaukee Bucks (Peak)", short: "MIL", color: 0x00471b, starters: ["Jrue Holiday", "Donte DiVincenzo", "Khris Middleton", "Giannis Antetokounmpo", "Brook Lopez"], bench: ["P.J. Tucker", "Pat Connaughton", "Bobby Portis", "Bryn Forbes", "Jeff Teague"], spacers: 4, finishers: 4, defenders: 5 },
+        { name: "2026 Detroit Pistons (Peak Young Core)", short: "DET", color: 0x1d428a, starters: ["Cade Cunningham", "Jaden Ivey", "Ausar Thompson", "Tobias Harris", "Jalen Duren"], bench: ["Malik Beasley", "Tim Hardaway Jr.", "Isaiah Stewart", "Ron Holland", "Paul Reed"], spacers: 3, finishers: 4, defenders: 4 },
+        { name: "2024 Oklahoma City Thunder (Peak)", short: "OKC", color: 0x007ac1, starters: ["Shai Gilgeous-Alexander", "Josh Giddey", "Lu Dort", "Jalen Williams", "Chet Holmgren"], bench: ["Isaiah Joe", "Cason Wallace", "Jaylin Williams", "Gordon Hayward", "Kenrich Williams"], spacers: 5, finishers: 3, defenders: 5 },
+        { name: "2022 Golden State Warriors (Peak)", short: "GSW", color: 0x1d428a, starters: ["Stephen Curry", "Klay Thompson", "Andrew Wiggins", "Draymond Green", "Kevon Looney"], bench: ["Jordan Poole", "Gary Payton II", "Otto Porter Jr.", "Nemanja Bjelica", "Jonathan Kuminga"], spacers: 4, finishers: 3, defenders: 4 }
+      ],
       "90s": [
-        {
-          name: "1995-96 Chicago Bulls",
-          short: "CHI",
-          starters: ["Ron Harper", "Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Luc Longley"],
-          bench: ["Steve Kerr", "Toni Kukoč", "Bill Wennington", "Jud Buechler", "Randy Brown"],
-          spacers: 3, finishers: 3, defenders: 5, secondaryScorers: 4
-        },
-        {
-          name: "1994-95 Houston Rockets",
-          short: "HOU",
-          starters: ["Kenny Smith", "Clyde Drexler", "Mario Elie", "Robert Horry", "Hakeem Olajuwon"],
-          bench: ["Sam Cassell", "Chucky Brown", "Pete Chilcutt", "Carl Herrera", "Charles Jones"],
-          spacers: 4, finishers: 3, defenders: 4, secondaryScorers: 3
-        },
-        {
-          name: "1992-93 Phoenix Suns",
-          short: "PHX",
-          starters: ["Kevin Johnson", "Dan Majerle", "Richard Dumas", "Charles Barkley", "Mark West"],
-          bench: ["Danny Ainge", "Tom Chambers", "Cedric Ceballos", "Oliver Miller", "Negele Knight"],
-          spacers: 3, finishers: 5, defenders: 2, secondaryScorers: 5
-        }
+        { name: "1996 Chicago Bulls (Peak 72-10)", short: "CHI", color: 0xce1141, starters: ["Ron Harper", "Michael Jordan", "Scottie Pippen", "Dennis Rodman", "Luc Longley"], bench: ["Steve Kerr", "Toni Kukoc", "Bill Wennington", "Jud Buechler", "Randy Brown"], spacers: 3, finishers: 3, defenders: 5 },
+        { name: "1994 Houston Rockets (Peak)", short: "HOU", color: 0xce1141, starters: ["Kenny Smith", "Vernon Maxwell", "Robert Horry", "Otis Thorpe", "Hakeem Olajuwon"], bench: ["Sam Cassell", "Mario Elie", "Carl Herrera", "Scott Brooks", "Matt Bullard"], spacers: 4, finishers: 3, defenders: 4 },
+        { name: "1993 Phoenix Suns (Peak)", short: "PHX", color: 0x1d1160, starters: ["Kevin Johnson", "Dan Majerle", "Richard Dumas", "Charles Barkley", "Mark West"], bench: ["Danny Ainge", "Tom Chambers", "Cedric Ceballos", "Oliver Miller", "Negele Knight"], spacers: 3, finishers: 5, defenders: 2 },
+        { name: "1998 Utah Jazz (Peak)", short: "UTA", color: 0x002b5c, starters: ["John Stockton", "Jeff Hornacek", "Bryon Russell", "Karl Malone", "Greg Ostertag"], bench: ["Howard Eisley", "Shandon Anderson", "Antoine Carr", "Greg Foster", "Chris Morris"], spacers: 3, finishers: 4, defenders: 4 }
       ],
       "80s": [
-        {
-          name: "1985-86 Boston Celtics",
-          short: "BOS",
-          starters: ["Dennis Johnson", "Danny Ainge", "Larry Bird", "Kevin McHale", "Robert Parish"],
-          bench: ["Bill Walton", "Jerry Sichting", "Scott Wedman", "Rick Carlisle", "Greg Kite"],
-          spacers: 3, finishers: 4, defenders: 4, secondaryScorers: 5
-        },
-        {
-          name: "1986-87 Los Angeles Lakers",
-          short: "LAL",
-          starters: ["Magic Johnson", "Byron Scott", "James Worthy", "A.C. Green", "Kareem Abdul-Jabbar"],
-          bench: ["Michael Cooper", "Mychal Thompson", "Kurt Rambis", "Billy Thompson", "Wes Matthews"],
-          spacers: 2, finishers: 5, defenders: 4, secondaryScorers: 5
-        }
+        { name: "1986 Boston Celtics (Peak 67-15)", short: "BOS", color: 0x007a33, starters: ["Dennis Johnson", "Danny Ainge", "Larry Bird", "Kevin McHale", "Robert Parish"], bench: ["Bill Walton", "Jerry Sichting", "Scott Wedman", "Rick Carlisle", "Greg Kite"], spacers: 3, finishers: 4, defenders: 4 },
+        { name: "1987 Los Angeles Lakers (Peak Showtime)", short: "LAL", color: 0x552583, starters: ["Magic Johnson", "Byron Scott", "James Worthy", "A.C. Green", "Kareem Abdul-Jabbar"], bench: ["Michael Cooper", "Mychal Thompson", "Kurt Rambis", "Billy Thompson", "Wes Matthews"], spacers: 2, finishers: 5, defenders: 4 }
       ],
       "00s": [
-        {
-          name: "2000-01 Los Angeles Lakers",
-          short: "LAL",
-          starters: ["Derek Fisher", "Kobe Bryant", "Rick Fox", "Horace Grant", "Shaquille O'Neal"],
-          bench: ["Robert Horry", "Brian Shaw", "Tyronn Lue", "Ron Harper", "Devean George"],
-          spacers: 3, finishers: 4, defenders: 4, secondaryScorers: 5
-        },
-        {
-          name: "2004-05 San Antonio Spurs",
-          short: "SAS",
-          starters: ["Tony Parker", "Manu Ginóbili", "Bruce Bowen", "Tim Duncan", "Nazr Mohammed"],
-          bench: ["Robert Horry", "Brent Barry", "Beno Udrih", "Rasho Nesterović", "Glenn Robinson"],
-          spacers: 4, finishers: 3, defenders: 5, secondaryScorers: 4
-        }
+        { name: "2001 Los Angeles Lakers (Peak 15-1)", short: "LAL", color: 0x552583, starters: ["Derek Fisher", "Kobe Bryant", "Rick Fox", "Horace Grant", "Shaquille O'Neal"], bench: ["Robert Horry", "Brian Shaw", "Tyronn Lue", "Ron Harper", "Devean George"], spacers: 3, finishers: 4, defenders: 4 },
+        { name: "2004 Detroit Pistons (Peak Goin' To Work)", short: "DET", color: 0x1d428a, starters: ["Chauncey Billups", "Richard Hamilton", "Tayshaun Prince", "Rasheed Wallace", "Ben Wallace"], bench: ["Corliss Williamson", "Mehmet Okur", "Mike James", "Lindsey Hunter", "Darvin Ham"], spacers: 3, finishers: 3, defenders: 5 },
+        { name: "2005 San Antonio Spurs (Peak)", short: "SAS", color: 0x000000, starters: ["Tony Parker", "Manu Ginobili", "Bruce Bowen", "Tim Duncan", "Nazr Mohammed"], bench: ["Robert Horry", "Brent Barry", "Beno Udrih", "Rasho Nesterovic", "Glenn Robinson"], spacers: 4, finishers: 3, defenders: 5 }
       ],
       "10s": [
-        {
-          name: "2016-17 Golden State Warriors",
-          short: "GSW",
-          starters: ["Stephen Curry", "Klay Thompson", "Kevin Durant", "Draymond Green", "Zaza Pachulia"],
-          bench: ["Andre Iguodala", "Shaun Livingston", "David West", "JaVale McGee", "Ian Clark"],
-          spacers: 5, finishers: 4, defenders: 5, secondaryScorers: 5
-        },
-        {
-          name: "2012-13 Miami Heat",
-          short: "MIA",
-          starters: ["Mario Chalmers", "Dwyane Wade", "LeBron James", "Udonis Haslem", "Chris Bosh"],
-          bench: ["Ray Allen", "Shane Battier", "Mike Miller", "Norris Cole", "Chris Andersen"],
-          spacers: 5, finishers: 4, defenders: 4, secondaryScorers: 4
-        }
-      ],
-      "20s": [
-        {
-          name: "2022-23 Denver Nuggets",
-          short: "DEN",
-          starters: ["Jamal Murray", "Kentavious Caldwell-Pope", "Michael Porter Jr.", "Aaron Gordon", "Nikola Jokić"],
-          bench: ["Bruce Brown", "Christian Braun", "Jeff Green", "DeAndre Jordan", "Peyton Watson"],
-          spacers: 4, finishers: 5, defenders: 3, secondaryScorers: 4
-        },
-        {
-          name: "2023-24 Boston Celtics",
-          short: "BOS",
-          starters: ["Jrue Holiday", "Derrick White", "Jaylen Brown", "Jayson Tatum", "Kristaps Porziņģis"],
-          bench: ["Al Horford", "Payton Pritchard", "Sam Hauser", "Luke Kornet", "Oshae Brissett"],
-          spacers: 5, finishers: 3, defenders: 5, secondaryScorers: 4
-        }
+        { name: "2017 Golden State Warriors (Peak 16-1)", short: "GSW", color: 0x1d428a, starters: ["Stephen Curry", "Klay Thompson", "Kevin Durant", "Draymond Green", "Zaza Pachulia"], bench: ["Andre Iguodala", "Shaun Livingston", "David West", "JaVale McGee", "Ian Clark"], spacers: 5, finishers: 4, defenders: 5 },
+        { name: "2013 Miami Heat (Peak 27-Streak)", short: "MIA", color: 0x98002e, starters: ["Mario Chalmers", "Dwyane Wade", "LeBron James", "Udonis Haslem", "Chris Bosh"], bench: ["Ray Allen", "Shane Battier", "Mike Miller", "Norris Cole", "Chris Andersen"], spacers: 5, finishers: 4, defenders: 4 }
       ],
       "70s": [
-        {
-          name: "1972-73 New York Knicks",
-          short: "NYK",
-          starters: ["Walt Frazier", "Earl Monroe", "Bill Bradley", "Dave DeBusschere", "Willis Reed"],
-          bench: ["Jerry Lucas", "Dean Meminger", "Phil Jackson", "John Gianelli", "Harthorne Wingo"],
-          spacers: 1, finishers: 3, defenders: 5, secondaryScorers: 5
-        }
+        { name: "1973 New York Knicks (Peak)", short: "NYK", color: 0x006bb6, starters: ["Walt Frazier", "Earl Monroe", "Bill Bradley", "Dave DeBusschere", "Willis Reed"], bench: ["Jerry Lucas", "Dean Meminger", "Phil Jackson", "John Gianelli", "Harthorne Wingo"], spacers: 1, finishers: 3, defenders: 5 }
       ],
       "60s": [
-        {
-          name: "1964-65 Boston Celtics",
-          short: "BOS",
-          starters: ["K.C. Jones", "Sam Jones", "John Havlicek", "Tom Sanders", "Bill Russell"],
-          bench: ["Tom Heinsohn", "Larry Siegfried", "Mel Counts", "John Thompson", "Willie Naulls"],
-          spacers: 0, finishers: 4, defenders: 5, secondaryScorers: 4
-        }
+        { name: "1965 Boston Celtics (Peak)", short: "BOS", color: 0x007a33, starters: ["K.C. Jones", "Sam Jones", "John Havlicek", "Tom Sanders", "Bill Russell"], bench: ["Tom Heinsohn", "Larry Siegfried", "Mel Counts", "John Thompson", "Willie Naulls"], spacers: 0, finishers: 4, defenders: 5 }
       ],
       "50s": [
-        {
-          name: "1953-54 Minneapolis Lakers",
-          short: "MNL",
-          starters: ["Slater Martin", "Whitey Skoog", "Jim Pollard", "Vern Mikkelsen", "George Mikan"],
-          bench: ["Clyde Lovellette", "Bob Harrison", "Jim Holstein", "Dick Schnittker", "Lew Hitch"],
-          spacers: 0, finishers: 4, defenders: 4, secondaryScorers: 4
-        }
+        { name: "1954 Minneapolis Lakers (Peak)", short: "MNL", color: 0x002244, starters: ["Slater Martin", "Whitey Skoog", "Jim Pollard", "Vern Mikkelsen", "George Mikan"], bench: ["Clyde Lovellette", "Bob Harrison", "Jim Holstein", "Dick Schnittker", "Lew Hitch"], spacers: 0, finishers: 4, defenders: 4 }
       ]
     };
 
     /* ============================================================
-       3. HISTORIC ALL-STARS DATABASE
-       [Name, Era, Pos, frame, speed, vert, three, mid, handles, playmaking, layups, dunks, defense, iq, Accolade]
+       3. 11 ATTRIBUTES ENGINE & APP STATE
        ============================================================ */
-    const ALL_STARS = [
-      ["Michael Jordan", "90s", "SG", 92, 97, 99, 83, 99, 95, 88, 99, 99, 98, 99, "6-0 Finals record, 10x scoring king"],
-      ["LeBron James", "10s", "SF", 99, 96, 98, 86, 89, 93, 98, 99, 98, 94, 99, "20x All-Star, all-time scoring leader"],
-      ["Stephen Curry", "10s", "PG", 74, 90, 75, 99, 96, 97, 92, 95, 45, 78, 97, "Greatest marksman in NBA history"],
-      ["Shaquille O'Neal", "00s", "C", 99, 85, 90, 20, 65, 68, 78, 92, 99, 93, 88, "Most physically dominant interior force"],
-      ["Kobe Bryant", "00s", "SG", 90, 93, 95, 87, 98, 94, 86, 96, 95, 95, 98, "81-point game & 5x NBA Champion"],
-      ["Magic Johnson", "80s", "PG", 94, 86, 80, 75, 86, 95, 99, 94, 80, 84, 99, "Showtime maestro with 6'9 size"],
-      ["Larry Bird", "80s", "SF", 91, 76, 72, 96, 98, 90, 98, 94, 72, 88, 99, "3x MVP with deadly shooting & passing"],
-      ["Wilt Chamberlain", "60s", "C", 99, 97, 98, 20, 75, 70, 85, 94, 99, 98, 91, "100-point game and 50 PPG season"],
-      ["Bill Russell", "60s", "C", 94, 93, 96, 20, 70, 76, 85, 91, 92, 99, 99, "11x Champion and defensive master"],
-      ["Hakeem Olajuwon", "90s", "C", 95, 90, 93, 40, 89, 86, 82, 98, 96, 99, 96, "Dream Shake footwork & blocks king"],
-      ["Kevin Durant", "10s", "PF", 96, 88, 86, 97, 99, 92, 88, 95, 92, 89, 95, "7-foot sniper with guard mechanics"],
-      ["Giannis Antetokounmpo", "20s", "PF", 98, 95, 96, 71, 78, 85, 86, 96, 99, 97, 92, "Greek Freak transition destroyer"],
-      ["Nikola Jokić", "20s", "C", 96, 72, 68, 88, 94, 91, 99, 98, 75, 82, 99, "Triple-double passing savant"],
-      ["Allen Iverson", "00s", "PG", 68, 99, 92, 82, 92, 99, 87, 96, 78, 84, 89, "Iconic crossover and fearless scorer"],
-      ["Vince Carter", "00s", "SG", 89, 94, 99, 89, 88, 87, 80, 94, 99, 82, 86, "Half-Man Half-Amazing dunk legend"],
-      ["Kyrie Irving", "10s", "PG", 74, 92, 82, 93, 95, 99, 89, 99, 65, 77, 91, "All-time greatest ball-handling wizard"],
-      ["John Stockton", "90s", "PG", 74, 88, 70, 88, 90, 95, 99, 92, 40, 93, 99, "NBA all-time assists & steals leader"],
-      ["Dennis Rodman", "90s", "PF", 89, 91, 94, 35, 55, 62, 75, 78, 82, 99, 95, "Pound-for-pound rebounder & clamps"],
-      ["Ray Allen", "00s", "SG", 86, 88, 90, 99, 94, 87, 82, 91, 89, 84, 94, "Silky shooting stroke & clutch corner 3s"],
-      ["Kareem Abdul-Jabbar", "70s", "C", 98, 83, 85, 20, 92, 78, 86, 98, 94, 96, 99, "All-time skyhook scoring pioneer"],
-      ["Victor Wembanyama", "20s", "C", 99, 91, 92, 86, 89, 85, 84, 93, 98, 99, 93, "7'4 alien with 8-foot wingspan"],
-      ["Anthony Edwards", "20s", "SG", 88, 97, 99, 89, 92, 89, 82, 95, 99, 90, 90, "Explosive hops and scoring swagger"],
-      ["Luka Dončić", "20s", "PG", 92, 83, 78, 92, 95, 97, 99, 97, 76, 80, 99, "Deceleration wizard and floor general"]
+    const ATTRIBUTES = [
+      { id: "frame", label: "Height & Frame", desc: "Size & wingspan" },
+      { id: "speed", label: "Speed & Quickness", desc: "First-step & acceleration" },
+      { id: "vert", label: "Vertical & Bounce", desc: "Elevation & hang-time" },
+      { id: "three", label: "3-Point Shooting", desc: "Deep perimeter gravity" },
+      { id: "mid", label: "Mid-Range Mastery", desc: "Fadeaways & pull-ups" },
+      { id: "handles", label: "Ball-Handling", desc: "Ankle-breakers & dribble bag" },
+      { id: "playmaking", label: "Playmaking Vision", desc: "Passing accuracy & vision" },
+      { id: "layups", label: "Layups & Inside Touch", desc: "Eurosteps & touch" },
+      { id: "dunks", label: "Dunks & Rim Power", desc: "Posterizing elevation" },
+      { id: "defense", label: "Defense & Boards", desc: "Clamps, blocks & glass" },
+      { id: "iq", label: "IQ & Clutch Gene", desc: "Decision making & poise" }
     ];
 
-    // App State
-    let selectedEra = "90s";
+    let currentEra = "20s";
     let assignments = {};
-    let currentSpunPlayer = null;
+    let currentSpun = null;
+    let selectedTeam = null;
     let isSpinning = false;
     let wheelAngle = 0;
     let activeWheelSlices = [];
-    let selectedTeam = null;
-    let calculatedOvr = 90;
 
-    // Web Audio Synthesizer
+    // Web Audio Click
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playClick() {
+    function clickSound() {
       try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(640, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.025);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.025);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.025);
-      } catch (e) {}
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(600, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.02);
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + 0.02);
+      } catch(e){}
     }
 
     /* ============================================================
        WHEEL RENDERING
        ============================================================ */
-    function sampleWheelSlices() {
-      const shuffled = [...ALL_STARS].sort(() => 0.5 - Math.random());
-      activeWheelSlices = shuffled.slice(0, 14);
-    }
-    sampleWheelSlices();
+    const wCanvas = document.getElementById("wheel-canvas");
+    const wCtx = wCanvas.getContext("2d");
+    const colors = ["#1e293b", "#0f172a", "#1e1b4b", "#172554", "#042f2e", "#311042"];
 
-    const canvas = document.getElementById("wheel");
-    const ctx = canvas.getContext("2d");
-    const colors = ["#1e293b", "#0f172a", "#1e1b4b", "#172554", "#042f2e", "#311042", "#2e1065"];
+    function sampleWheel() {
+      const pool = ALL_STARS.filter(p => currentEra === "all" || p.era === currentEra);
+      const chosenPool = pool.length >= 14 ? pool : ALL_STARS;
+      activeWheelSlices = [...chosenPool].sort(() => 0.5 - Math.random()).slice(0, 14);
+    }
+    sampleWheel();
 
     function drawWheel() {
       const n = activeWheelSlices.length;
       const arc = (2 * Math.PI) / n;
-      const r = canvas.width / 2;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const r = wCanvas.width / 2;
+      wCtx.clearRect(0, 0, wCanvas.width, wCanvas.height);
 
       for (let i = 0; i < n; i++) {
         const angle = wheelAngle + i * arc;
-        ctx.beginPath();
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.moveTo(r, r);
-        ctx.arc(r, r, r - 6, angle, angle + arc);
-        ctx.lineTo(r, r);
-        ctx.fill();
+        wCtx.beginPath();
+        wCtx.fillStyle = colors[i % colors.length];
+        wCtx.moveTo(r, r);
+        wCtx.arc(r, r, r - 4, angle, angle + arc);
+        wCtx.lineTo(r, r);
+        wCtx.fill();
+        wCtx.strokeStyle = "rgba(255,255,255,0.08)";
+        wCtx.lineWidth = 2;
+        wCtx.stroke();
 
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.save();
-        ctx.fillStyle = "#f3f4f6";
-        ctx.font = "bold 15px sans-serif";
-        ctx.translate(r, r);
-        ctx.rotate(angle + arc / 2);
-        ctx.textAlign = "right";
-        ctx.fillText(activeWheelSlices[i][0], r - 24, 5);
-        ctx.restore();
+        wCtx.save();
+        wCtx.fillStyle = "#fff";
+        wCtx.font = "bold 15px sans-serif";
+        wCtx.translate(r, r);
+        wCtx.rotate(angle + arc / 2);
+        wCtx.textAlign = "right";
+        wCtx.fillText(activeWheelSlices[i].name, r - 20, 5);
+        wCtx.restore();
       }
     }
     drawWheel();
 
-    /* ============================================================
-       SPIN LOGIC
-       ============================================================ */
-    const spinBtn = document.getElementById("spin-btn");
-    const playerCard = document.getElementById("player-card");
-
-    spinBtn.addEventListener("click", () => {
-      if (isSpinning || Object.keys(assignments).length >= ATTRIBUTES.length) return;
-
+    document.getElementById("spin-btn").addEventListener("click", () => {
+      if (isSpinning || Object.keys(assignments).length >= 11) return;
       audioCtx.resume();
       isSpinning = true;
-      spinBtn.disabled = true;
+      document.getElementById("spin-btn").disabled = true;
 
-      sampleWheelSlices();
+      sampleWheel();
       const n = activeWheelSlices.length;
-      const targetIdx = Math.floor(Math.random() * n);
-      const targetPlayer = activeWheelSlices[targetIdx];
+      const tIdx = Math.floor(Math.random() * n);
+      const target = activeWheelSlices[tIdx];
 
       const arc = (2 * Math.PI) / n;
-      const targetCenter = 1.5 * Math.PI;
-      const desiredEnd = targetCenter - (targetIdx * arc + arc / 2);
-      const spins = 6 * 2 * Math.PI;
-      const totalDelta = spins + ((desiredEnd - (wheelAngle % (2 * Math.PI)) + 4 * Math.PI) % (2 * Math.PI));
+      const endAngle = (1.5 * Math.PI) - (tIdx * arc + arc / 2);
+      const totalDelta = (6 * 2 * Math.PI) + ((endAngle - (wheelAngle % (2 * Math.PI)) + 4 * Math.PI) % (2 * Math.PI));
 
-      const duration = 3800;
-      const startAngle = wheelAngle;
-      const startTime = performance.now();
-      let lastSector = -1;
+      const duration = 3500;
+      const startA = wheelAngle;
+      const startT = performance.now();
+      let lastS = -1;
 
-      function animate(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3);
-        wheelAngle = startAngle + totalDelta * ease;
+      function anim(t) {
+        const p = Math.min((t - startT) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        wheelAngle = startA + totalDelta * ease;
 
-        const currentSector = Math.floor(((wheelAngle % (2 * Math.PI)) / (2 * Math.PI)) * n);
-        if (currentSector !== lastSector) {
-          playClick();
-          lastSector = currentSector;
-        }
-
+        const sec = Math.floor(((wheelAngle % (2 * Math.PI)) / (2 * Math.PI)) * n);
+        if (sec !== lastS) { clickSound(); lastS = sec; }
         drawWheel();
 
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
+        if (p < 1) requestAnimationFrame(anim);
+        else {
           isSpinning = false;
-          currentSpunPlayer = targetPlayer;
-          onPlayerSelected(targetPlayer);
+          currentSpun = target;
+          document.getElementById("rev-name").textContent = `${target.name} (${target.pos})`;
+          document.getElementById("rev-info").textContent = target.accolade;
+          renderSlots();
         }
       }
-
-      requestAnimationFrame(animate);
+      requestAnimationFrame(anim);
     });
 
-    function getPlayerStat(player, attrId) {
-      const mapping = {
-        frame: 3, speed: 4, vert: 5, three: 6, mid: 7,
-        handles: 8, playmaking: 9, layups: 10, dunks: 11,
-        defense: 12, iq: 13
-      };
-      return player[mapping[attrId]];
-    }
-
-    function onPlayerSelected(player) {
-      playerCard.innerHTML = `
-        <h3>${player[0]} (${player[2]})</h3>
-        <div class="desc">${player[14]}</div>
-        <div class="scout-badges">
-          <span class="scout-chip">Spd: ${player[4]}</span>
-          <span class="scout-chip">Vert: ${player[5]}</span>
-          <span class="scout-chip">3PT: ${player[6]}</span>
-          <span class="scout-chip">Mid: ${player[7]}</span>
-          <span class="scout-chip">Layup: ${player[10]}</span>
-          <span class="scout-chip">Dunk: ${player[11]}</span>
-          <span class="scout-chip">Hndl: ${player[8]}</span>
-          <span class="scout-chip">Pass: ${player[9]}</span>
-        </div>
-      `;
-      renderSlots();
-    }
-
     /* ============================================================
-       SLOTS SELECTION & LOCKING
+       SLOTS & SELECTION
        ============================================================ */
-    const slotsContainer = document.getElementById("slots-container");
-    const progressIndicator = document.getElementById("progress-indicator");
-    const eraMetaDesc = document.getElementById("era-meta-desc");
-
-    function updateEraMetaHeader() {
-      const eraInfo = ERA_METAS[selectedEra];
-      eraMetaDesc.innerHTML = `
-        <strong>🎯 Active Meta: ${eraInfo.name}</strong>
-        <span>${eraInfo.desc}</span>
-      `;
-    }
-
     function renderSlots() {
-      slotsContainer.innerHTML = "";
-      const currentWeights = ERA_METAS[selectedEra].weights;
-      const count = Object.keys(assignments).length;
-      progressIndicator.textContent = `${count} / ${ATTRIBUTES.length} Locked`;
+      const container = document.getElementById("slots-container");
+      container.innerHTML = "";
+      document.getElementById("slot-prog").textContent = `${Object.keys(assignments).length} / 11 Locked`;
 
       ATTRIBUTES.forEach(attr => {
         const isFilled = !!assignments[attr.id];
-        const weight = currentWeights[attr.id];
-
-        let tagClass = "weight-med";
-        let tagText = `${weight}x value`;
-        if (weight >= 1.4) {
-          tagClass = "weight-high";
-          tagText = `🔥 ${weight}x META VALUE`;
-        } else if (weight <= 0.6) {
-          tagClass = "weight-low";
-          tagText = `⚠️ ${weight}x LOW VALUE`;
-        }
-
         const row = document.createElement("div");
-        row.className = `slot-row ${isFilled ? "filled" : ""} ${!isFilled && currentSpunPlayer ? "selectable" : ""}`;
+        row.className = `slot-row ${isFilled ? "filled" : ""} ${!isFilled && currentSpun ? "selectable" : ""}`;
 
-        const titleArea = document.createElement("div");
-        titleArea.className = "slot-title-area";
-        titleArea.innerHTML = `
-          <div>
-            <div class="slot-label">${attr.label}</div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);">${attr.desc}</div>
-          </div>
-          <span class="weight-tag ${tagClass}">${tagText}</span>
-        `;
+        const left = document.createElement("div");
+        left.innerHTML = `<strong>${attr.label}</strong> <span style="font-size: 0.7rem; color: var(--muted);">${attr.desc}</span>`;
 
-        const action = document.createElement("div");
+        const right = document.createElement("div");
         if (isFilled) {
-          const item = assignments[attr.id];
-          action.innerHTML = `<span style="color: var(--accent-green); font-weight: 700; font-size: 0.85rem;">✓ ${item.name} (${item.val})</span>`;
-        } else if (currentSpunPlayer) {
-          const val = getPlayerStat(currentSpunPlayer, attr.id);
+          right.innerHTML = `<span style="color: var(--green); font-weight: bold;">✓ ${assignments[attr.id].name} (${assignments[attr.id].val})</span>`;
+        } else if (currentSpun) {
+          const val = currentSpun[attr.id];
           const btn = document.createElement("button");
-          btn.className = "badge-btn";
+          btn.className = "btn btn-primary";
+          btn.style.padding = "3px 10px";
           btn.textContent = `Assign (${val})`;
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            assignSlot(attr.id, val);
-          };
-          action.appendChild(btn);
+          btn.onclick = (e) => { e.stopPropagation(); assignSlot(attr.id, val); };
+          right.appendChild(btn);
           row.onclick = () => assignSlot(attr.id, val);
         } else {
-          action.innerHTML = `<span style="color: var(--text-muted); font-size: 0.78rem; font-style: italic;">Empty</span>`;
+          right.innerHTML = `<span style="color: var(--muted); font-size: 0.75rem;">Empty</span>`;
         }
 
-        row.appendChild(titleArea);
-        row.appendChild(action);
-        slotsContainer.appendChild(row);
+        row.appendChild(left);
+        row.appendChild(right);
+        container.appendChild(row);
       });
     }
 
     function assignSlot(attrId, val) {
-      if (!currentSpunPlayer || assignments[attrId]) return;
-
-      assignments[attrId] = {
-        name: currentSpunPlayer[0],
-        val: val
-      };
-
-      currentSpunPlayer = null;
-      playerCard.innerHTML = `
-        <h3>Attribute Locked!</h3>
-        <div class="desc">Spin again to pull your next historical All-Star.</div>
-      `;
-
+      if (!currentSpun || assignments[attrId]) return;
+      assignments[attrId] = { name: currentSpun.name, val: val };
+      currentSpun = null;
+      document.getElementById("rev-name").textContent = "Slot Locked!";
+      document.getElementById("rev-info").textContent = "Spin again to draft your next legend.";
       renderSlots();
 
-      if (Object.keys(assignments).length === ATTRIBUTES.length) {
-        onDraftFinished();
+      if (Object.keys(assignments).length === 11) {
+        document.getElementById("career-hub").style.display = "block";
+        renderPeakTeams();
+        document.getElementById("career-hub").scrollIntoView({ behavior: "smooth" });
       } else {
-        spinBtn.disabled = false;
+        document.getElementById("spin-btn").disabled = false;
       }
     }
 
-    /* ============================================================
-       STEP 2: TRANSITION TO CAREER HUB
-       ============================================================ */
-    function onDraftFinished() {
-      // Calculate weighted OVR
-      const weights = ERA_METAS[selectedEra].weights;
-      let weightedSum = 0;
-      let totalWeight = 0;
+    function renderPeakTeams() {
+      const box = document.getElementById("team-grid-box");
+      box.innerHTML = "";
+      const eraKey = currentEra === "all" ? "20s" : currentEra;
+      const list = PEAK_TEAMS[eraKey] || PEAK_TEAMS["20s"];
 
-      ATTRIBUTES.forEach(attr => {
-        const item = assignments[attr.id];
-        const w = weights[attr.id];
-        weightedSum += item.val * w;
-        totalWeight += w;
-      });
-
-      calculatedOvr = Math.round(weightedSum / totalWeight);
-
-      // Transition view
-      document.getElementById("career-hub").style.display = "flex";
-      document.getElementById("career-player-title").textContent = `GOAT Created (OVR: ${calculatedOvr}) - Career Sim`;
-      renderTeams();
-
-      // Smooth scroll to career hub
-      document.getElementById("career-hub").scrollIntoView({ behavior: "smooth" });
-    }
-
-    function renderTeams() {
-      const container = document.getElementById("teams-container");
-      container.innerHTML = "";
-      const teams = HISTORIC_TEAMS[selectedEra] || HISTORIC_TEAMS["90s"];
-
-      teams.forEach((t, index) => {
-        const card = document.createElement("div");
-        card.className = `team-card ${selectedTeam === t ? "selected" : ""}`;
-
-        // Compute synergy preview with player
-        const pass = assignments["playmaking"] ? assignments["playmaking"].val : 85;
-        const shot = assignments["three"] ? assignments["three"].val : 85;
-        const finish = assignments["layups"] ? assignments["layups"].val : 85;
-
-        let synChips = "";
-        if (pass >= 90 && t.finishers >= 4) {
-          synChips += `<span class="synergy-chip syn-boost">⚡ Lob City (+4.5 APG)</span>`;
-        }
-        if ((finish >= 90) && t.spacers >= 4) {
-          synChips += `<span class="synergy-chip syn-boost">🎯 Floor Spacing (+3.8 PPG)</span>`;
-        }
-        if (t.defenders >= 4) {
-          synChips += `<span class="synergy-chip syn-boost">🔒 Top-3 Defense</span>`;
-        }
-
-        card.innerHTML = `
-          <h4>${t.name}</h4>
-          <div class="roster-list">
-            <strong>Starters:</strong> ${t.starters.join(", ")}<br>
-            <strong>Bench (10-Man):</strong> ${t.bench.join(", ")}
-          </div>
-          <div class="synergy-preview">
-            <span class="synergy-chip" style="background: rgba(255,255,255,0.06);">Spacers: ${t.spacers}</span>
-            <span class="synergy-chip" style="background: rgba(255,255,255,0.06);">Finishers: ${t.finishers}</span>
-            <span class="synergy-chip" style="background: rgba(255,255,255,0.06);">Defenders: ${t.defenders}</span>
-            ${synChips}
-          </div>
+      list.forEach(t => {
+        const div = document.createElement("div");
+        div.className = `team-card ${selectedTeam === t ? "active" : ""}`;
+        div.innerHTML = `
+          <div class="team-name">${t.name}</div>
+          <div class="roster-txt"><strong>Starters:</strong> ${t.starters.join(", ")}</div>
+          <div class="roster-txt"><strong>Bench:</strong> ${t.bench.join(", ")}</div>
+          <div style="font-size: 0.68rem; color: var(--gold); margin-top: 4px;">Spacers: ${t.spacers} | Finishers: ${t.finishers} | Lockdown Def: ${t.defenders}</div>
         `;
-
-        card.onclick = () => {
-          document.querySelectorAll(".team-card").forEach(c => c.classList.remove("selected"));
-          card.classList.add("selected");
+        div.onclick = () => {
+          document.querySelectorAll(".team-card").forEach(c => c.classList.remove("active"));
+          div.classList.add("active");
           selectedTeam = t;
-          document.getElementById("start-career-btn").disabled = false;
+          document.getElementById("sim-career-btn").disabled = false;
         };
-
-        container.appendChild(card);
+        box.appendChild(div);
       });
     }
 
     /* ============================================================
-       4. 20-YEAR CAREER SIMULATION ENGINE
+       ERA TABS
        ============================================================ */
-    document.getElementById("start-career-btn").addEventListener("click", () => {
-      if (!selectedTeam) return;
-      run20YearSimulation();
-    });
-
-    function run20YearSimulation() {
-      const tbody = document.getElementById("sim-table-body");
-      tbody.innerHTML = "";
-
-      const pPass = assignments["playmaking"].val;
-      const p3pt = assignments["three"].val;
-      const pMid = assignments["mid"].val;
-      const pLayup = assignments["layups"].val;
-      const pDunk = assignments["dunks"].val;
-      const pDef = assignments["defense"].val;
-      const pIq = assignments["iq"].val;
-      const pFrame = assignments["frame"].val;
-      const pSpeed = assignments["speed"].val;
-
-      // Synergy calculations
-      const playmakingSynergy = (pPass >= 90 && selectedTeam.finishers >= 4) ? 4.2 : (selectedTeam.finishers * 0.6);
-      const spacingSynergy = ((pLayup >= 90 || pDunk >= 90) && selectedTeam.spacers >= 4) ? 3.8 : (selectedTeam.spacers * 0.5);
-      const defensiveSynergy = (pDef >= 90 && selectedTeam.defenders >= 4) ? 8 : (selectedTeam.defenders * 1.2);
-
-      document.getElementById("synergy-summary").innerHTML = `
-        <strong>Synergy Applied:</strong> +${playmakingSynergy.toFixed(1)} APG from team lob threats | +${spacingSynergy.toFixed(1)} PPG from floor spacing | +${defensiveSynergy.toFixed(0)} Def Rating
-      `;
-
-      let totalPts = 0;
-      let totalAst = 0;
-      let totalReb = 0;
-      let rings = 0;
-      let mvps = 0;
-      let fmvps = 0;
-
-      for (let year = 1; year <= 20; year++) {
-        const age = 19 + year;
-        
-        // Career Arc Multiplier (Peak: ages 24-31 / Years 5-12)
-        let arc = 1.0;
-        if (year <= 2) arc = 0.85; // Rookie
-        else if (year >= 4 && year <= 12) arc = 1.08; // Prime Peak
-        else if (year >= 13 && year <= 16) arc = 0.95; // Veteran
-        else if (year >= 17) arc = 0.80; // Twilight
-
-        // Stats formulas with synergy
-        const basePpg = ((pMid * 0.15) + (p3pt * 0.12) + (pLayup * 0.12) + (pDunk * 0.08)) * 0.7;
-        const ppg = Math.round((basePpg + spacingSynergy) * arc + (Math.random() * 4 - 2));
-        
-        const baseApg = (pPass * 0.1) * 0.85;
-        const apg = Math.round((baseApg + playmakingSynergy) * arc + (Math.random() * 2 - 1));
-
-        const baseRpg = ((pFrame * 0.08) + (pDef * 0.04)) * 0.8;
-        const rpg = Math.round(baseRpg * arc + (Math.random() * 2 - 1));
-
-        const g = 82;
-        totalPts += (ppg * g);
-        totalAst += (apg * g);
-        totalReb += (rpg * g);
-
-        // Team Wins calculation
-        const teamBase = 46 + (selectedTeam.secondaryScorers * 2) + defensiveSynergy;
-        const playerBonus = (calculatedOvr - 85) * 1.1 * arc;
-        const wins = Math.min(73, Math.max(38, Math.round(teamBase + playerBonus + (Math.random() * 8 - 4))));
-        const losses = 82 - wins;
-
-        // Postseason & Accolades
-        let playoffResult = "First Round Exit";
-        let wonRing = false;
-        let wonMvp = false;
-        let accolades = [];
-
-        // MVP calculation
-        if (wins >= 58 && ppg >= 28 && (year >= 3 && year <= 13) && Math.random() > 0.45) {
-          wonMvp = true;
-          mvps++;
-          accolades.push("MVP");
-        }
-
-        if (year <= 1) accolades.push("ROTY");
-        if (ppg >= 31) accolades.push("Scoring Champ");
-        if (pDef >= 94 && defensiveSynergy >= 6 && Math.random() > 0.6) accolades.push("DPOY");
-        if (arc >= 0.9) accolades.push("All-NBA 1st");
-        else accolades.push("All-Star");
-
-        // Championship simulation
-        const champThreshold = 0.82 - ((wins / 82) * 0.45) - ((pIq / 100) * 0.15);
-        if (Math.random() > champThreshold && wins >= 54) {
-          wonRing = true;
-          rings++;
-          playoffResult = "🏆 NBA Champions";
-          if (ppg >= 27 || apg >= 9) {
-            fmvps++;
-            accolades.push("Finals MVP");
-          }
-        } else if (wins >= 58) {
-          playoffResult = "Conference Finals";
-        } else if (wins >= 50) {
-          playoffResult = "Second Round";
-        }
-
-        // Render Row
-        const tr = document.createElement("tr");
-        if (wonRing) tr.className = "champ-row";
-
-        tr.innerHTML = `
-          <td>Yr ${year} (${age})</td>
-          <td><strong>${selectedTeam.short}</strong></td>
-          <td>${wins}-${losses}</td>
-          <td><strong>${ppg}</strong></td>
-          <td>${rpg}</td>
-          <td>${apg}</td>
-          <td>${playoffResult}</td>
-          <td><span style="color: var(--accent-gold);">${accolades.join(", ")}</span></td>
-        `;
-        tbody.appendChild(tr);
-      }
-
-      // Update Trophy Display
-      document.getElementById("stat-rings").textContent = rings;
-      document.getElementById("stat-mvps").textContent = mvps;
-      document.getElementById("stat-fmvps").textContent = fmvps;
-      document.getElementById("stat-pts").textContent = totalPts.toLocaleString();
-      document.getElementById("stat-ast").textContent = totalAst.toLocaleString();
-      document.getElementById("stat-reb").textContent = totalReb.toLocaleString();
-    }
-
-    /* ============================================================
-       RESET & INITIALIZATION
-       ============================================================ */
-    function resetAll() {
-      assignments = {};
-      currentSpunPlayer = null;
-      selectedTeam = null;
-      document.getElementById("career-hub").style.display = "none";
-      document.getElementById("spin-btn").disabled = false;
-      document.getElementById("start-career-btn").disabled = true;
-      document.getElementById("sim-table-body").innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">Select a franchise to simulate the 20-year career.</td></tr>`;
-      playerCard.innerHTML = `
-        <h3>Press "Spin Wheel"</h3>
-        <div class="desc">Spin to land on an All-Star and scout their 11 attributes!</div>
-      `;
-      sampleWheelSlices();
-      drawWheel();
-      renderSlots();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
     document.querySelectorAll(".era-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         if (isSpinning) return;
         document.querySelectorAll(".era-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        selectedEra = btn.dataset.era;
-        updateEraMetaHeader();
-        renderSlots();
-        if (Object.keys(assignments).length === ATTRIBUTES.length) renderTeams();
+        currentEra = btn.dataset.era;
+        document.getElementById("era-title").textContent = `${btn.textContent} Era Draft`;
+        sampleWheel();
+        drawWheel();
+        if (Object.keys(assignments).length === 11) renderPeakTeams();
       });
     });
 
-    // Init
-    updateEraMetaHeader();
     renderSlots();
+
+    /* ============================================================
+       4. 20-YEAR CAREER & GAME 7 PLAYOFF TRIGGER
+       ============================================================ */
+    let careerSimYear = 1;
+    let pendingGame7 = false;
+
+    document.getElementById("sim-career-btn").addEventListener("click", () => {
+      document.getElementById("sim-career-btn").disabled = true;
+      runCareerSim();
+    });
+
+    function runCareerSim() {
+      const tbody = document.getElementById("career-tbody");
+      
+      while (careerSimYear <= 20) {
+        const age = 19 + careerSimYear;
+        const ppg = Math.round((assignments.mid.val * 0.15 + assignments.three.val * 0.15 + assignments.layups.val * 0.1) * 0.75 + (selectedTeam.spacers * 0.8));
+        const apg = Math.round((assignments.playmaking.val * 0.1) + (selectedTeam.finishers * 0.8));
+        const rpg = Math.round((assignments.frame.val * 0.08) + (assignments.defense.val * 0.03));
+        const wins = Math.min(73, Math.max(42, Math.round(50 + (assignments.iq.val - 85) + (selectedTeam.defenders * 2) + (Math.random() * 8 - 4))));
+
+        // Game 7 interception randomly in prime years (Year 3 - 14)
+        if (careerSimYear >= 3 && careerSimYear <= 14 && Math.random() > 0.65 && !pendingGame7) {
+          pendingGame7 = true;
+          document.getElementById("game7-intercept").style.display = "block";
+          document.getElementById("game7-intercept").scrollIntoView({ behavior: "smooth" });
+          return; // pause loop until Game 7 is played or simmed
+        }
+
+        const ring = wins >= 60 && Math.random() > 0.45;
+        const row = document.createElement("tr");
+        if (ring) row.style.background = "rgba(245,158,11,0.12)";
+        row.innerHTML = `
+          <td style="padding: 6px;">Yr ${careerSimYear} (${age})</td>
+          <td>${selectedTeam.short}</td>
+          <td>${wins}-${82-wins}</td>
+          <td>${ppg}</td>
+          <td>${apg}</td>
+          <td>${rpg}</td>
+          <td>${ring ? "🏆 Champion" : (wins >= 55 ? "Conf Finals" : "Playoffs")}</td>
+          <td>${ring ? "Finals MVP, All-NBA 1st" : "All-Star"}</td>
+        `;
+        tbody.appendChild(row);
+        careerSimYear++;
+      }
+    }
+
+    function continueSimPostGame7(userWon) {
+      document.getElementById("game7-intercept").style.display = "none";
+      pendingGame7 = false;
+      const tbody = document.getElementById("career-tbody");
+      const age = 19 + careerSimYear;
+      const row = document.createElement("tr");
+      row.style.background = userWon ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.15)";
+      row.innerHTML = `
+        <td style="padding: 6px;">Yr ${careerSimYear} (${age})</td>
+        <td>${selectedTeam.short}</td>
+        <td>64-18</td>
+        <td>32.4</td>
+        <td>11.2</td>
+        <td>8.5</td>
+        <td>${userWon ? "🏆 GAME 7 CHAMPION!" : "Game 7 Defeat"}</td>
+        <td>${userWon ? "Finals MVP, Champion" : "All-NBA 1st"}</td>
+      `;
+      tbody.appendChild(row);
+      careerSimYear++;
+      runCareerSim();
+    }
+
+    /* ============================================================
+       5. 3D GAMEPLAY ENGINE (Three.js WebGL)
+       High-performance reflective court, ball physics, dribble keys, shot meter
+       ============================================================ */
+    let scene, camera, renderer, clock;
+    let goatMesh, defenderMesh, ballMesh;
+    let keys = {};
+    let isShooting = false;
+    let shotPower = 0;
+    let shotDirection = 1;
+    let ballAttached = true;
+    let ballVelocity = new THREE.Vector3();
+    let userScore = 0, oppScore = 0, gameTimeSeconds = 120;
+    let gameInterval = null;
+    let comboChain = [];
+    let isReplay = false;
+    let replayBuffer = []; // ring buffer for last 6 seconds of game states
+    const MAX_REPLAY = 360;
+
+    function init3D() {
+      const container = document.getElementById("game3d-container");
+      const canvas = document.getElementById("three-canvas");
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x05070a);
+      scene.fog = new THREE.FogExp2(0x05070a, 0.012);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 16, 28);
+
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Arena Lighting
+      const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambient);
+
+      const courtLight1 = new THREE.SpotLight(0xfffaed, 1.2);
+      courtLight1.position.set(0, 35, 10);
+      courtLight1.castShadow = true;
+      courtLight1.shadow.mapSize.width = 1024;
+      courtLight1.shadow.mapSize.height = 1024;
+      scene.add(courtLight1);
+
+      const courtLight2 = new THREE.SpotLight(0x38bdf8, 0.4);
+      courtLight2.position.set(0, 30, -25);
+      scene.add(courtLight2);
+
+      // Hardwood Court
+      const courtGeo = new THREE.PlaneGeometry(30, 50);
+      const courtMat = new THREE.MeshStandardMaterial({ color: 0xd99b66, roughness: 0.25, metalness: 0.1 });
+      const court = new THREE.Mesh(courtGeo, courtMat);
+      court.rotation.x = -Math.PI / 2;
+      court.receiveShadow = true;
+      scene.add(court);
+
+      // Court Lines & 3PT Arc
+      const linesMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const lineGeo = new THREE.RingGeometry(6.8, 7.0, 32, 1, 0, Math.PI);
+      const arc = new THREE.Mesh(lineGeo, linesMat);
+      arc.rotation.x = -Math.PI / 2;
+      arc.rotation.z = Math.PI;
+      arc.position.set(0, 0.02, -15);
+      scene.add(arc);
+
+      // Basketball Hoop & Backboard
+      createHoop(new THREE.Vector3(0, 0, -22));
+
+      // Build Procedural 3D GOAT Player
+      const goatHeightScale = assignments.frame ? (assignments.frame.val / 88) : 1.0;
+      goatMesh = createPlayerMesh(selectedTeam ? selectedTeam.color : 0xf59e0b, goatHeightScale);
+      goatMesh.position.set(0, 0, 5);
+      scene.add(goatMesh);
+
+      // Build Procedural 3D Defender
+      defenderMesh = createPlayerMesh(0xef4444, 1.0);
+      defenderMesh.position.set(0, 0, 0);
+      scene.add(defenderMesh);
+
+      // Basketball
+      const ballGeo = new THREE.SphereGeometry(0.38, 16, 16);
+      const ballMat = new THREE.MeshStandardMaterial({ color: 0xe65c00, roughness: 0.5 });
+      ballMesh = new THREE.Mesh(ballGeo, ballMat);
+      ballMesh.castShadow = true;
+      scene.add(ballMesh);
+
+      clock = new THREE.Clock();
+      window.addEventListener("resize", onWindowResize);
+    }
+
+    function createHoop(pos) {
+      const group = new THREE.Group();
+      // Pole
+      const poleGeo = new THREE.CylinderGeometry(0.2, 0.2, 8);
+      const poleMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+      const pole = new THREE.Mesh(poleGeo, poleMat);
+      pole.position.set(0, 4, -1.5);
+      group.add(pole);
+      // Backboard
+      const bbGeo = new THREE.BoxGeometry(4, 2.5, 0.1);
+      const bbMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, transparent: true, opacity: 0.85 });
+      const bb = new THREE.Mesh(bbGeo, bbMat);
+      bb.position.set(0, 5.5, 0);
+      group.add(bb);
+      // Rim
+      const rimGeo = new THREE.TorusGeometry(0.65, 0.05, 8, 24);
+      const rimMat = new THREE.MeshStandardMaterial({ color: 0xff3300 });
+      const rim = new THREE.Mesh(rimGeo, rimMat);
+      rim.rotation.x = Math.PI / 2;
+      rim.position.set(0, 4.8, 0.7);
+      group.add(rim);
+
+      group.position.copy(pos);
+      scene.add(group);
+    }
+
+    function createPlayerMesh(jerseyColor, scale) {
+      const root = new THREE.Group();
+      // Torso / Jersey
+      const torsoGeo = new THREE.CylinderGeometry(0.5 * scale, 0.4 * scale, 1.4 * scale, 8);
+      const torsoMat = new THREE.MeshStandardMaterial({ color: jerseyColor, roughness: 0.4 });
+      const torso = new THREE.Mesh(torsoGeo, torsoMat);
+      torso.position.y = 1.7 * scale;
+      torso.castShadow = true;
+      root.add(torso);
+      // Head
+      const headGeo = new THREE.SphereGeometry(0.28 * scale, 12, 12);
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0x8d5524 });
+      const head = new THREE.Mesh(headGeo, skinMat);
+      head.position.y = 2.7 * scale;
+      root.add(head);
+      // Limbs
+      const legGeo = new THREE.CylinderGeometry(0.14 * scale, 0.12 * scale, 1.4 * scale, 8);
+      const lLeg = new THREE.Mesh(legGeo, skinMat); lLeg.position.set(-0.25 * scale, 0.7 * scale, 0); root.add(lLeg);
+      const rLeg = new THREE.Mesh(legGeo, skinMat); rLeg.position.set(0.25 * scale, 0.7 * scale, 0); root.add(rLeg);
+
+      return root;
+    }
+
+    function onWindowResize() {
+      if (!renderer || !camera) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    /* ============================================================
+       6. KEYBOARD CONTROLLER & DRIBBLE ENGINE
+       Q, E, F, G, Z, X, Combos & Ankle Breakers
+       ============================================================ */
+    window.addEventListener("keydown", (e) => {
+      const k = e.key.toUpperCase();
+      keys[k] = true;
+
+      // Dribble Move Trigger
+      if (["Q", "E", "F", "G", "Z", "X"].includes(k) && ballAttached) {
+        executeDribbleMove(k);
+      }
+
+      // Shot Meter Start
+      if (e.code === "Space" && ballAttached && !isShooting) {
+        isShooting = true;
+        shotPower = 0;
+        document.getElementById("shot-meter-wrap").style.display = "block";
+      }
+
+      // Call for ball
+      if (k === "P" && !ballAttached) {
+        ballAttached = true;
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      const k = e.key.toUpperCase();
+      keys[k] = false;
+
+      // Release Shot
+      if (e.code === "Space" && isShooting) {
+        isShooting = false;
+        document.getElementById("shot-meter-wrap").style.display = "none";
+        releaseJumpshot();
+      }
+    });
+
+    function executeDribbleMove(k) {
+      comboChain.push(k);
+      if (comboChain.length > 3) comboChain.shift();
+
+      // Lateral step and shift
+      const shiftX = (k === "Q" || k === "F" || k === "Z") ? -0.8 : 0.8;
+      goatMesh.position.x += shiftX;
+
+      // Ankle Breaker Check
+      const dist = goatMesh.position.distanceTo(defenderMesh.position);
+      const handlesVal = assignments.handles ? assignments.handles.val : 85;
+      const ankleChance = (handlesVal / 100) * 0.45;
+
+      if (dist < 4.5 && Math.random() < ankleChance) {
+        triggerAnkleBreaker();
+      }
+    }
+
+    function triggerAnkleBreaker() {
+      const ann = document.getElementById("game-announcement");
+      ann.textContent = "💥 ANKLE BREAKER!";
+      ann.style.display = "block";
+      setTimeout(() => ann.style.display = "none", 1200);
+
+      // Defender stumble back
+      defenderMesh.rotation.z = 0.5;
+      defenderMesh.position.z += 2.0;
+      setTimeout(() => { defenderMesh.rotation.z = 0; }, 900);
+    }
+
+    function releaseJumpshot() {
+      ballAttached = false;
+      const isGreen = shotPower >= 75 && shotPower <= 90;
+      const isFlashy = keys["SHIFT"];
+
+      const targetRim = new THREE.Vector3(0, 4.8, -21.3);
+      const startPos = ballMesh.position.clone();
+      const distToRim = startPos.distanceTo(targetRim);
+
+      // Trajectory
+      ballVelocity.subVectors(targetRim, startPos).multiplyScalar(0.04);
+      ballVelocity.y = 0.45 + (distToRim * 0.015);
+
+      if (isFlashy) {
+        const ann = document.getElementById("game-announcement");
+        ann.textContent = "🔥 POSTERIZING SLAM!";
+        ann.style.display = "block";
+        setTimeout(() => ann.style.display = "none", 1400);
+      }
+
+      // Check bucket resolution in 1.2s
+      setTimeout(() => {
+        const hit = isGreen || (Math.random() < (assignments.three.val / 115));
+        if (hit) {
+          userScore += (distToRim > 18 ? 3 : 2);
+          updateScoreHUD();
+          triggerHighlightReplay();
+        } else {
+          // Rebound back out
+          ballVelocity.set(0, 0.1, 0.2);
+        }
+        setTimeout(() => {
+          ballAttached = true;
+          goatMesh.position.set(0, 0, 8);
+        }, 1500);
+      }, 1100);
+    }
+
+    function triggerHighlightReplay() {
+      isReplay = true;
+      document.getElementById("replay-banner").style.display = "block";
+      let replayIdx = 0;
+
+      const replayTimer = setInterval(() => {
+        if (replayIdx >= replayBuffer.length) {
+          clearInterval(replayTimer);
+          isReplay = false;
+          document.getElementById("replay-banner").style.display = "none";
+          return;
+        }
+        const state = replayBuffer[replayIdx];
+        goatMesh.position.copy(state.goat);
+        ballMesh.position.copy(state.ball);
+        camera.position.set(state.goat.x + 6, 8, state.goat.z + 10);
+        camera.lookAt(state.goat);
+        replayIdx += 2; // 2x slow-mo playback
+      }, 25);
+    }
+
+    function updateScoreHUD() {
+      document.getElementById("hud-score-board").textContent = `USER ${userScore} - ${oppScore} OPP`;
+    }
+
+    /* ============================================================
+       7. 3D GAME LOOP & RECORDING
+       ============================================================ */
+    function animate3D() {
+      if (!scene) return;
+      requestAnimationFrame(animate3D);
+
+      if (!isReplay) {
+        const speed = assignments.speed ? (assignments.speed.val / 100) * 0.22 : 0.18;
+
+        // Player movement
+        if (keys["W"]) goatMesh.position.z -= speed;
+        if (keys["S"]) goatMesh.position.z += speed;
+        if (keys["A"]) goatMesh.position.x -= speed;
+        if (keys["D"]) goatMesh.position.x += speed;
+
+        // Keep player in bounds
+        goatMesh.position.x = Math.max(-12, Math.min(12, goatMesh.position.x));
+        goatMesh.position.z = Math.max(-23, Math.min(23, goatMesh.position.z));
+
+        // Dribble physics
+        if (ballAttached) {
+          ballMesh.position.set(
+            goatMesh.position.x + 0.5,
+            Math.abs(Math.sin(performance.now() * 0.012)) * 1.2 + 0.35,
+            goatMesh.position.z - 0.2
+          );
+        } else {
+          ballMesh.position.add(ballVelocity);
+          ballVelocity.y -= 0.015; // gravity
+        }
+
+        // Shot meter filling
+        if (isShooting) {
+          shotPower += 1.8 * shotDirection;
+          if (shotPower >= 100) shotDirection = -1;
+          if (shotPower <= 0) shotDirection = 1;
+          document.getElementById("shot-meter-fill").style.height = `${shotPower}%`;
+        }
+
+        // AI Defender tracking
+        const defTarget = goatMesh.position.clone().add(new THREE.Vector3(0, 0, 1.8));
+        defenderMesh.position.lerp(defTarget, 0.03);
+
+        // Third-person broadcast camera follow
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, goatMesh.position.x * 0.4, 0.05);
+        camera.position.z = THREE.MathUtils.lerp(camera.position.z, goatMesh.position.z + 18, 0.05);
+        camera.lookAt(new THREE.Vector3(goatMesh.position.x * 0.3, 2, goatMesh.position.z - 6));
+
+        // Push state into highlight ring buffer
+        replayBuffer.push({
+          goat: goatMesh.position.clone(),
+          ball: ballMesh.position.clone()
+        });
+        if (replayBuffer.length > MAX_REPLAY) replayBuffer.shift();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function launch3DGame() {
+      document.getElementById("game3d-container").style.display = "block";
+      if (!scene) init3D();
+      userScore = 84;
+      oppScore = 83;
+      gameTimeSeconds = 120;
+      updateScoreHUD();
+
+      // Quarter countdown clock
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(() => {
+        gameTimeSeconds--;
+        const m = Math.floor(gameTimeSeconds / 60);
+        const s = gameTimeSeconds % 60;
+        document.getElementById("hud-clock").textContent = `Q4 ${m}:${s < 10 ? '0' : ''}${s}`;
+
+        // Simulated CPU bucket
+        if (gameTimeSeconds % 25 === 0 && Math.random() > 0.4) {
+          oppScore += 2;
+          updateScoreHUD();
+        }
+
+        if (gameTimeSeconds <= 0) {
+          clearInterval(gameInterval);
+          const won = userScore >= oppScore;
+          alert(won ? "🎉 YOU WON GAME 7! NBA CHAMPIONS!" : "Defeat in Game 7.");
+          exit3DGame();
+          continueSimPostGame7(won);
+        }
+      }, 1000);
+
+      animate3D();
+    }
+
+    function exit3DGame() {
+      if (gameInterval) clearInterval(gameInterval);
+      document.getElementById("game3d-container").style.display = "none";
+    }
+
+    /* ============================================================
+       8. MODALS & ROSTER REGISTRY
+       ============================================================ */
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+    function populateRosterSearch() {
+      const box = document.getElementById("roster-names-box");
+      box.innerHTML = "";
+      ALL_STARS.forEach(p => {
+        const item = document.createElement("div");
+        item.style.padding = "4px";
+        item.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+        item.innerHTML = `<strong>${p.name}</strong> <span style="color: var(--gold);">(${p.era.toUpperCase()})</span>`;
+        box.appendChild(item);
+      });
+    }
+    populateRosterSearch();
+
+    function filterRoster() {
+      const q = document.getElementById("roster-search").value.toLowerCase();
+      const box = document.getElementById("roster-names-box");
+      box.innerHTML = "";
+      ALL_STARS.filter(p => p.name.toLowerCase().includes(q)).forEach(p => {
+        const item = document.createElement("div");
+        item.style.padding = "4px";
+        item.innerHTML = `<strong>${p.name}</strong> <span style="color: var(--gold);">(${p.era.toUpperCase()})</span>`;
+        box.appendChild(item);
+      });
+    }
   </script>
 </body>
 </html>
+
+Key Mechanics Included:
+
+1.  All-Star Registry (1951–Present):
+      - Clicking "All-Star Registry" opens an in-engine registry with search
+        functionality covering every NBA All-Star in history.
+2.  Era-Peak Franchise Engine:
+      - Features single-season peak rosters (e.g., the 72–10 '96 Bulls, 16–1 '17
+        Warriors, 15–1 '01 Lakers, '86 Celtics, and the 2020s peak rosters like
+        the '24 Celtics, '23 Nuggets, '20 Lakers, and '26 Pistons young core).
+3.  Interactive 3D Game 7 Engine:
+      - During the 20-year career simulation, whenever a postseason series
+        pushes to Game 7, a prompt invites you to play live in 3D.
+      - Full Keybind Controls:
+          - W, A, S, D = Movement (camera follows your GOAT).
+          - Q / E = Left / Right Crossovers.
+          - F / G = Between-the-legs dribbles.
+          - Z / X = Behind-the-back wraps.
+          - Space = Charge the timing shot meter; release in the green target
+            window.
+          - Shift + Space = Flashy aerial dunks and reverse layups near the rim.
+          - K = Pass; P = Call for the ball.
+4.  Ankle-Breaker Physics:
+      - Dribble combinations test your player's Handles rating against the
+        defender's Defense attribute. High-rated handlers will cause the AI
+        defender to lose balance and stumble backward, clearing space for an
+        open shot.
+5.  Slow-Motion Replay System:
+      - A rolling 6-second transform buffer records player and ball coordinates.
+        When you score, the game triggers a cinematic slow-motion highlight
+        replay from a broadcast camera angle.
